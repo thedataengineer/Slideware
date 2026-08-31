@@ -1,6 +1,3 @@
-<!-- Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. -->
-<!-- This file shows how to design a first-run page that provides a welcome screen to the user about the features of the add-in. -->
-
 <!DOCTYPE html>
 <html>
 
@@ -8,73 +5,269 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Contoso Task Pane Add-in</title>
+    <title>Slideware</title>
 
     <!-- Office JavaScript API -->
     <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
 
-    <!-- For more information on Fluent UI, visit https://developer.microsoft.com/fluentui#/. -->
-    <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css"/>
-
-    <!-- Template styles -->
     <link href="taskpane.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body class="ms-Fabric">
   <section id="sideload-msg" class="startup-message">
-    Open Slideware inside PowerPoint to use Smart Alignment.
+    Open Slideware inside PowerPoint to use it.
   </section>
   <main id="app-body" class="app" hidden>
     <header class="app-header">
-      <p class="eyebrow">PRODUCTIVITY</p>
-      <h1>Smart Alignment</h1>
-      <p class="intro">Select shapes, choose an alignment or layout, then apply.</p>
+      <p class="eyebrow">SLIDEWARE</p>
+      <h1>Slideware</h1>
     </header>
 
-    <section class="panel" aria-labelledby="align-heading">
-      <h2 id="align-heading">Align</h2>
-      <div class="button-grid button-grid-3">
-        <button type="button" data-align="left">Left</button>
-        <button type="button" data-align="center">Center</button>
-        <button type="button" data-align="right">Right</button>
-        <button type="button" data-align="top">Top</button>
-        <button type="button" data-align="middle">Middle</button>
-        <button type="button" data-align="bottom">Bottom</button>
-      </div>
-    </section>
+    <div class="smartbar" role="toolbar" aria-label="SmartBar quick actions">
+      <button type="button" data-op="align.left" title="Align left (L)">⇤</button>
+      <button type="button" data-op="align.center" title="Align center (C)">⇹</button>
+      <button type="button" data-op="align.right" title="Align right (R)">⇥</button>
+      <button type="button" data-op="align.top" title="Align top (T)">⤒</button>
+      <button type="button" data-op="align.middle" title="Align middle (M)">⇳</button>
+      <button type="button" data-op="align.bottom" title="Align bottom (B)">⤓</button>
+      <button type="button" data-op="size.width" title="Same width (W)">W</button>
+      <button type="button" data-op="size.height" title="Same height (E)">H</button>
+      <button type="button" data-op="size.both" title="Same size">▣</button>
+      <button type="button" data-op="swap" title="Swap positions (S)">⇆</button>
+    </div>
 
-    <section class="panel" aria-labelledby="distribute-heading">
-      <h2 id="distribute-heading">Distribute</h2>
-      <div class="button-grid button-grid-2">
-        <button type="button" data-distribute="horizontal">Horizontal</button>
-        <button type="button" data-distribute="vertical">Vertical</button>
-      </div>
-    </section>
+    <nav class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="productivity" aria-selected="true">Productivity</button>
+      <button type="button" role="tab" data-tab="branding" aria-selected="false">Branding</button>
+      <button type="button" role="tab" data-tab="genai" aria-selected="false">Gen AI</button>
+    </nav>
 
-    <section class="panel" aria-labelledby="matrix-heading">
-      <h2 id="matrix-heading">Matrix</h2>
-      <div class="field-grid">
-        <label>Columns <input id="matrix-columns" type="number" min="1" step="1" value="3"></label>
-        <label>Column gap <input id="matrix-column-gap" type="number" step="1" value="16"></label>
-        <label>Row gap <input id="matrix-row-gap" type="number" step="1" value="16"></label>
-      </div>
-      <button id="apply-matrix" class="primary" type="button">Arrange matrix</button>
-    </section>
+    <div data-panel="productivity">
+      <section class="panel" aria-labelledby="align-heading">
+        <h2 id="align-heading">Align</h2>
+        <div class="button-grid button-grid-3">
+          <button type="button" data-align="left">Left</button>
+          <button type="button" data-align="center">Center</button>
+          <button type="button" data-align="right">Right</button>
+          <button type="button" data-align="top">Top</button>
+          <button type="button" data-align="middle">Middle</button>
+          <button type="button" data-align="bottom">Bottom</button>
+        </div>
+      </section>
 
-    <section class="panel" aria-labelledby="circle-heading">
-      <h2 id="circle-heading">Circle</h2>
-      <div class="field-grid">
-        <label>Radius <input id="circle-radius" type="number" min="1" step="1" value="120"></label>
-        <label>Start angle <input id="circle-angle" type="number" step="1" value="-90"></label>
-        <label>Direction
-          <select id="circle-direction">
-            <option value="clockwise">Clockwise</option>
-            <option value="counterclockwise">Counterclockwise</option>
-          </select>
-        </label>
-      </div>
-      <button id="apply-circle" class="primary" type="button">Arrange circle</button>
-    </section>
+      <section class="panel" aria-labelledby="distribute-heading">
+        <h2 id="distribute-heading">Distribute</h2>
+        <div class="button-grid button-grid-2">
+          <button type="button" data-distribute="horizontal">Horizontal</button>
+          <button type="button" data-distribute="vertical">Vertical</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="matrix-heading">
+        <h2 id="matrix-heading">Matrix</h2>
+        <div class="field-grid">
+          <label>Columns <input id="matrix-columns" type="number" min="1" step="1" value="3"></label>
+          <label>Column gap <input id="matrix-column-gap" type="number" step="1" value="16"></label>
+          <label>Row gap <input id="matrix-row-gap" type="number" step="1" value="16"></label>
+        </div>
+        <button id="apply-matrix" class="primary" type="button">Arrange matrix</button>
+      </section>
+
+      <section class="panel" aria-labelledby="circle-heading">
+        <h2 id="circle-heading">Circle</h2>
+        <div class="field-grid">
+          <label>Radius <input id="circle-radius" type="number" min="1" step="1" value="120"></label>
+          <label>Start angle <input id="circle-angle" type="number" step="1" value="-90"></label>
+          <label>Direction
+            <select id="circle-direction">
+              <option value="clockwise">Clockwise</option>
+              <option value="counterclockwise">Counterclockwise</option>
+            </select>
+          </label>
+        </div>
+        <button id="apply-circle" class="primary" type="button">Arrange circle</button>
+      </section>
+
+      <section class="panel" aria-labelledby="selection-heading">
+        <h2 id="selection-heading">Smart Selection</h2>
+        <p class="hint">Select one anchor shape, pick criteria, then select matches on the slide.</p>
+        <div class="check-grid">
+          <label><input id="sel-type" type="checkbox" checked> Same shape type</label>
+          <label><input id="sel-fill" type="checkbox"> Same fill color</label>
+          <label><input id="sel-size" type="checkbox"> Same size</label>
+        </div>
+        <button id="smart-select" class="primary" type="button">Select matching shapes</button>
+      </section>
+
+      <section class="panel" aria-labelledby="ai-edit-heading">
+        <h2 id="ai-edit-heading">AI Editing</h2>
+        <p class="hint">Rewrites the text of the selected shape. Needs an API key (Gen AI tab).</p>
+        <div class="button-grid button-grid-2">
+          <button type="button" data-preset="proofread">Proofread</button>
+          <button type="button" data-preset="shorten">Shorten</button>
+          <button type="button" data-preset="expand">Expand</button>
+          <button type="button" data-preset="clarify">Clarify</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="checker-heading">
+        <h2 id="checker-heading">Checker</h2>
+        <button id="run-checker" class="primary" type="button">Run deck checker</button>
+        <ul id="checker-results" class="result-list"></ul>
+      </section>
+
+      <section class="panel" aria-labelledby="agenda-heading">
+        <h2 id="agenda-heading">Agenda Maker</h2>
+        <p class="hint">Builds an agenda from slide titles and inserts it on the current slide.</p>
+        <button id="insert-agenda" class="primary" type="button">Insert agenda</button>
+      </section>
+
+      <section class="panel" aria-labelledby="shortcuts-heading">
+        <h2 id="shortcuts-heading">Shortcuts</h2>
+        <p class="hint">Active while the task pane has focus.</p>
+        <ul class="shortcut-list">
+          <li><kbd>L</kbd> <kbd>C</kbd> <kbd>R</kbd> align left / center / right</li>
+          <li><kbd>T</kbd> <kbd>M</kbd> <kbd>B</kbd> align top / middle / bottom</li>
+          <li><kbd>H</kbd> <kbd>V</kbd> distribute horizontal / vertical</li>
+          <li><kbd>W</kbd> <kbd>E</kbd> same width / height</li>
+          <li><kbd>S</kbd> swap positions</li>
+        </ul>
+      </section>
+    </div>
+
+    <div data-panel="branding" hidden>
+      <section class="panel" aria-labelledby="fonts-heading">
+        <h2 id="fonts-heading">Fonts &amp; Colors</h2>
+        <div class="field-grid">
+          <label>Heading font <input id="brand-heading-font" type="text" value="Segoe UI"></label>
+          <label>Body font <input id="brand-body-font" type="text" value="Segoe UI"></label>
+        </div>
+        <div class="color-grid">
+          <input id="brand-color-0" type="color" value="#20262e" aria-label="Brand color 1">
+          <input id="brand-color-1" type="color" value="#0f6cbd" aria-label="Brand color 2">
+          <input id="brand-color-2" type="color" value="#0b6a3c" aria-label="Brand color 3">
+          <input id="brand-color-3" type="color" value="#b4009e" aria-label="Brand color 4">
+          <input id="brand-color-4" type="color" value="#ffb900" aria-label="Brand color 5">
+          <input id="brand-color-5" type="color" value="#f5f7f8" aria-label="Brand color 6">
+        </div>
+        <button id="save-brand" class="primary" type="button">Save brand</button>
+        <div class="swatch-row">
+          <div id="swatches" class="swatches"></div>
+          <label class="mode-label">Apply as
+            <select id="swatch-mode">
+              <option value="fill">Fill</option>
+              <option value="text">Text color</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="brand-auto-heading">
+        <h2 id="brand-auto-heading">Branding Automation</h2>
+        <div class="button-grid button-grid-1">
+          <button id="apply-brand-selection" type="button">Apply brand to selection</button>
+          <button id="apply-brand-deck" type="button">Fix fonts across deck</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="templates-heading">
+        <h2 id="templates-heading">Templates</h2>
+        <p class="hint">Inserts brand-styled blocks on the current slide.</p>
+        <div class="button-grid button-grid-2">
+          <button type="button" data-template="title-block">Title block</button>
+          <button type="button" data-template="kpi-row">KPI row</button>
+          <button type="button" data-template="quote-card">Quote card</button>
+          <button type="button" data-template="section-divider">Section divider</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="automation-heading">
+        <h2 id="automation-heading">Custom Automations</h2>
+        <p class="hint">Record a sequence of Slideware actions, then replay it on any selection.</p>
+        <div class="field-grid">
+          <label>Name <input id="automation-name" type="text" placeholder="e.g. Tidy row"></label>
+        </div>
+        <div class="button-grid button-grid-2">
+          <button id="record-automation" type="button">Record</button>
+          <button id="save-automation" type="button" disabled>Save</button>
+        </div>
+        <ul id="automation-list" class="result-list"></ul>
+      </section>
+    </div>
+
+    <div data-panel="genai" hidden>
+      <section class="panel" aria-labelledby="apikey-heading">
+        <h2 id="apikey-heading">Anthropic API key</h2>
+        <p class="hint">Stored only in this browser profile. Required for AI features.</p>
+        <div class="field-grid field-grid-1">
+          <label>API key <input id="api-key" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
+        </div>
+        <button id="save-api-key" class="primary" type="button">Save key</button>
+      </section>
+
+      <section class="panel" aria-labelledby="genai-edit-heading">
+        <h2 id="genai-edit-heading">Edit</h2>
+        <p class="hint">Rewrites the selected shape's text with your instruction.</p>
+        <textarea id="edit-instruction" rows="2" placeholder="e.g. Make this sound confident and half as long"></textarea>
+        <button id="run-edit" class="primary" type="button">Apply edit</button>
+      </section>
+
+      <section class="panel" aria-labelledby="create-heading">
+        <h2 id="create-heading">Create</h2>
+        <p class="hint">Generates a title and bullets, inserted on the current slide.</p>
+        <textarea id="create-topic" rows="2" placeholder="e.g. Q3 revenue summary for the exec team"></textarea>
+        <button id="run-create" class="primary" type="button">Create slide content</button>
+      </section>
+
+      <section class="panel" aria-labelledby="translate-heading">
+        <h2 id="translate-heading">Translate</h2>
+        <div class="field-grid">
+          <label>Language
+            <select id="translate-language">
+              <option>Spanish</option>
+              <option>French</option>
+              <option>German</option>
+              <option>Portuguese</option>
+              <option>Italian</option>
+              <option>Dutch</option>
+              <option>Japanese</option>
+              <option>Korean</option>
+              <option>Chinese (Simplified)</option>
+              <option>Hindi</option>
+            </select>
+          </label>
+        </div>
+        <button id="run-translate" class="primary" type="button">Translate selected text</button>
+      </section>
+
+      <section class="panel" aria-labelledby="search-heading">
+        <h2 id="search-heading">Super Search</h2>
+        <div class="search-row">
+          <input id="search-query" type="text" placeholder="Search all slides">
+          <button id="run-search" type="button">Search</button>
+        </div>
+        <ul id="search-results" class="result-list"></ul>
+      </section>
+
+      <section class="panel" aria-labelledby="darwin-heading">
+        <h2 id="darwin-heading">Darwin</h2>
+        <p class="hint">Deck assistant. Knows your slide outline; ask for critique or ideas.</p>
+        <div id="darwin-log" class="chat-log" aria-live="polite"></div>
+        <div class="search-row">
+          <input id="darwin-input" type="text" placeholder="Ask Darwin about this deck">
+          <button id="darwin-send" type="button">Send</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="mcp-heading">
+        <h2 id="mcp-heading">Claude MCP</h2>
+        <p class="hint">Run <code>node mcp-server/server.js</code>, add it to Claude, then connect this pane.</p>
+        <div class="search-row">
+          <button id="mcp-toggle" type="button">Connect</button>
+          <span id="mcp-status" class="mcp-status">Disconnected</span>
+        </div>
+      </section>
+    </div>
 
     <p id="status" class="status" role="status" aria-live="polite">Ready.</p>
   </main>
