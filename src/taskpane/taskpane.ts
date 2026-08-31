@@ -7,8 +7,9 @@ import {
   distributeShapes,
 } from "./alignment";
 import { SizeMode, matchSizes, swapPositions } from "./features/smartbar";
+import { matchShapes } from "./features/selection";
 import { dispatch, registerOp } from "./dispatcher";
-import { applyLayout } from "./powerpoint";
+import { applyLayout, canSelectShapes, readSelection, setSelection, snapshotDeck } from "./powerpoint";
 
 /* global document, Office, HTMLElement, HTMLInputElement, HTMLButtonElement, HTMLSelectElement */
 
@@ -138,6 +139,53 @@ function registerLayoutOps(): void {
   });
 }
 
+function checkboxValue(id: string): boolean {
+  return requiredElement<HTMLInputElement>(id).checked;
+}
+
+function registerSelectionOp(): void {
+  registerOp("select.smart", {
+    label: "Smart Selection",
+    run: async (params) => {
+      const criteria = {
+        sameType: params?.sameType === true,
+        sameFill: params?.sameFill === true,
+        sameSize: params?.sameSize === true,
+      };
+      const selected = await readSelection();
+      if (selected.length === 0) throw new Error("Select an anchor shape first.");
+      const anchor = selected[0];
+
+      const deck = await snapshotDeck();
+      const slide = deck.slides.find((candidate) =>
+        candidate.shapes.some((shape) => shape.id === anchor.id)
+      );
+      if (!slide) throw new Error("Could not locate the anchor shape's slide.");
+
+      const ids = matchShapes(slide.shapes, anchor, criteria);
+      if (canSelectShapes()) {
+        await setSelection(ids);
+        return `Selected ${ids.length} matching shapes.`;
+      }
+      const names = slide.shapes
+        .filter((shape) => ids.includes(shape.id))
+        .map((shape) => shape.name)
+        .join(", ");
+      return `Matched ${ids.length} shapes (selection needs API 1.6): ${names}`;
+    },
+  });
+}
+
+function bindSelectionControls(): void {
+  requiredElement<HTMLButtonElement>("smart-select").addEventListener("click", () => {
+    void runOp("select.smart", {
+      sameType: checkboxValue("sel-type"),
+      sameFill: checkboxValue("sel-fill"),
+      sameSize: checkboxValue("sel-size"),
+    });
+  });
+}
+
 function bindTabs(): void {
   const tabs = document.querySelectorAll<HTMLButtonElement>("[data-tab]");
   tabs.forEach((tab) => {
@@ -212,7 +260,9 @@ Office.onReady((info) => {
   requiredElement<HTMLElement>("sideload-msg").hidden = true;
   requiredElement<HTMLElement>("app-body").hidden = false;
   registerLayoutOps();
+  registerSelectionOp();
   bindTabs();
   bindLayoutControls();
+  bindSelectionControls();
   bindShortcuts();
 });
