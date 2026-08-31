@@ -180,6 +180,33 @@ function bindLayoutControls(): void {
   });
 }
 
+const shortcutOps: Record<string, string> = {
+  l: "align.left",
+  c: "align.center",
+  r: "align.right",
+  t: "align.top",
+  m: "align.middle",
+  b: "align.bottom",
+  h: "distribute.horizontal",
+  v: "distribute.vertical",
+  w: "size.width",
+  e: "size.height",
+  s: "swap",
+};
+
+function bindShortcuts(): void {
+  document.addEventListener("keydown", (event) => {
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName ?? "";
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+    if (event.ctrlKey || event.metaKey || event.altKey || busy) return;
+    const op = shortcutOps[event.key.toLowerCase()];
+    if (!op) return;
+    event.preventDefault();
+    void runOp(op);
+  });
+}
+
 Office.onReady((info) => {
   if (info.host !== Office.HostType.PowerPoint) return;
   requiredElement<HTMLElement>("sideload-msg").hidden = true;
@@ -187,4 +214,5 @@ Office.onReady((info) => {
   registerLayoutOps();
   bindTabs();
   bindLayoutControls();
+  bindShortcuts();
 });
