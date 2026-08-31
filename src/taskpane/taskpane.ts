@@ -37,6 +37,7 @@ import {
 } from "./features/prompts";
 import { searchDeck } from "./features/search";
 import { callClaude } from "./ai";
+import { connectBridge, disconnectBridge, isBridgeConnected, onBridgeStatus } from "./bridge";
 import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
   applyLayout,
@@ -784,6 +785,31 @@ function bindDarwinControls(): void {
   });
 }
 
+function bindMcpControls(): void {
+  const toggle = requiredElement<HTMLButtonElement>("mcp-toggle");
+  const statusLabel = requiredElement<HTMLElement>("mcp-status");
+
+  onBridgeStatus((state, detail) => {
+    statusLabel.className = state === "connected" ? "mcp-status connected" : "mcp-status";
+    statusLabel.textContent =
+      state === "connected"
+        ? "Connected"
+        : state === "connecting"
+          ? "Connecting..."
+          : "Disconnected";
+    toggle.textContent = state === "disconnected" ? "Connect" : "Disconnect";
+    if (detail) showStatus("error", detail);
+  });
+
+  toggle.addEventListener("click", () => {
+    if (isBridgeConnected()) {
+      disconnectBridge();
+      return;
+    }
+    connectBridge();
+  });
+}
+
 function bindTabs(): void {
   const tabs = document.querySelectorAll<HTMLButtonElement>("[data-tab]");
   tabs.forEach((tab) => {
@@ -871,5 +897,6 @@ Office.onReady((info) => {
   bindAiControls();
   bindSearchControls();
   bindDarwinControls();
+  bindMcpControls();
   bindShortcuts();
 });

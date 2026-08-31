@@ -1,0 +1,16 @@
+{
+  "name": "slideware-mcp-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCP server that lets Claude control the Slideware PowerPoint add-in.",
+  "main": "server.js",
+  "bin": {
+    "slideware-mcp": "./server.js"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
