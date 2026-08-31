@@ -8,8 +8,16 @@ import {
 } from "./alignment";
 import { SizeMode, matchSizes, swapPositions } from "./features/smartbar";
 import { matchShapes } from "./features/selection";
+import { audit } from "./features/checker";
 import { dispatch, registerOp } from "./dispatcher";
-import { applyLayout, canSelectShapes, readSelection, setSelection, snapshotDeck } from "./powerpoint";
+import {
+  applyLayout,
+  canSelectShapes,
+  gotoSlide,
+  readSelection,
+  setSelection,
+  snapshotDeck,
+} from "./powerpoint";
 
 /* global document, Office, HTMLElement, HTMLInputElement, HTMLButtonElement, HTMLSelectElement */
 
@@ -186,6 +194,62 @@ function bindSelectionControls(): void {
   });
 }
 
+async function runTask(work: () => Promise<string>): Promise<void> {
+  if (busy) return;
+  setBusy(true);
+  showStatus("info", "Working...");
+  try {
+    showStatus("success", await work());
+  } catch (error) {
+    showStatus("error", messageFor(error));
+  } finally {
+    setBusy(false);
+  }
+}
+
+function clearList(id: string): HTMLElement {
+  const list = requiredElement<HTMLElement>(id);
+  list.textContent = "";
+  return list;
+}
+
+function addListItem(list: HTMLElement, text: string, meta?: string, onClick?: () => void): void {
+  const item = document.createElement("li");
+  item.textContent = text;
+  if (meta) {
+    const metaLine = document.createElement("div");
+    metaLine.className = "meta";
+    metaLine.textContent = meta;
+    item.appendChild(metaLine);
+  }
+  if (onClick) {
+    item.className = "clickable";
+    item.addEventListener("click", onClick);
+  }
+  list.appendChild(item);
+}
+
+function bindCheckerControls(): void {
+  requiredElement<HTMLButtonElement>("run-checker").addEventListener("click", () => {
+    void runTask(async () => {
+      const deck = await snapshotDeck();
+      const findings = audit(deck);
+      const list = clearList("checker-results");
+      findings.forEach((finding) => {
+        const meta = finding.slideIndex ? `Slide ${finding.slideIndex} · ${finding.rule}` : finding.rule;
+        const jump = finding.slideIndex ? () => void runTask(async () => {
+          await gotoSlide(finding.slideIndex as number);
+          return `Moved to slide ${finding.slideIndex}.`;
+        }) : undefined;
+        addListItem(list, finding.message, meta, jump);
+      });
+      return findings.length === 0
+        ? "Checker found no issues."
+        : `Checker found ${findings.length} issues.`;
+    });
+  });
+}
+
 function bindTabs(): void {
   const tabs = document.querySelectorAll<HTMLButtonElement>("[data-tab]");
   tabs.forEach((tab) => {
@@ -264,5 +328,6 @@ Office.onReady((info) => {
   bindTabs();
   bindLayoutControls();
   bindSelectionControls();
+  bindCheckerControls();
   bindShortcuts();
 });
