@@ -1,0 +1,83 @@
+<!-- Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. -->
+<!-- This file shows how to design a first-run page that provides a welcome screen to the user about the features of the add-in. -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contoso Task Pane Add-in</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+
+    <!-- For more information on Fluent UI, visit https://developer.microsoft.com/fluentui#/. -->
+    <link rel="stylesheet" href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css"/>
+
+    <!-- Template styles -->
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body class="ms-Fabric">
+  <section id="sideload-msg" class="startup-message">
+    Open Slideware inside PowerPoint to use Smart Alignment.
+  </section>
+  <main id="app-body" class="app" hidden>
+    <header class="app-header">
+      <p class="eyebrow">PRODUCTIVITY</p>
+      <h1>Smart Alignment</h1>
+      <p class="intro">Select shapes, choose an alignment or layout, then apply.</p>
+    </header>
+
+    <section class="panel" aria-labelledby="align-heading">
+      <h2 id="align-heading">Align</h2>
+      <div class="button-grid button-grid-3">
+        <button type="button" data-align="left">Left</button>
+        <button type="button" data-align="center">Center</button>
+        <button type="button" data-align="right">Right</button>
+        <button type="button" data-align="top">Top</button>
+        <button type="button" data-align="middle">Middle</button>
+        <button type="button" data-align="bottom">Bottom</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="distribute-heading">
+      <h2 id="distribute-heading">Distribute</h2>
+      <div class="button-grid button-grid-2">
+        <button type="button" data-distribute="horizontal">Horizontal</button>
+        <button type="button" data-distribute="vertical">Vertical</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="matrix-heading">
+      <h2 id="matrix-heading">Matrix</h2>
+      <div class="field-grid">
+        <label>Columns <input id="matrix-columns" type="number" min="1" step="1" value="3"></label>
+        <label>Column gap <input id="matrix-column-gap" type="number" step="1" value="16"></label>
+        <label>Row gap <input id="matrix-row-gap" type="number" step="1" value="16"></label>
+      </div>
+      <button id="apply-matrix" class="primary" type="button">Arrange matrix</button>
+    </section>
+
+    <section class="panel" aria-labelledby="circle-heading">
+      <h2 id="circle-heading">Circle</h2>
+      <div class="field-grid">
+        <label>Radius <input id="circle-radius" type="number" min="1" step="1" value="120"></label>
+        <label>Start angle <input id="circle-angle" type="number" step="1" value="-90"></label>
+        <label>Direction
+          <select id="circle-direction">
+            <option value="clockwise">Clockwise</option>
+            <option value="counterclockwise">Counterclockwise</option>
+          </select>
+        </label>
+      </div>
+      <button id="apply-circle" class="primary" type="button">Arrange circle</button>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite">Ready.</p>
+  </main>
+</body>
+
+</html>

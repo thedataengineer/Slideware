@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2019",
+    "outDir": "lib-test",
+    "strict": true,
+    "esModuleInterop": true
+  },
+  "include": ["src/taskpane/alignment.ts", "src/taskpane/powerpoint.ts"]
+}
