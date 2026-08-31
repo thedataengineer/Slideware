@@ -15,7 +15,7 @@
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "dev-server": "webpack serve --mode development",
-    "test": "tsc -p tsconfig.test.json && node --test tests/alignment.test.js",
+    "test": "tsc -p tsconfig.test.json && node --test \"tests/*.test.js\"",
     "typecheck": "tsc --noEmit",
     "lint": "office-addin-lint check",
     "lint:fix": "office-addin-lint fix",

@@ -1,8 +1,9 @@
-import { ShapeBounds, ShapePosition } from "./alignment";
+import { ShapeBounds } from "./alignment";
+import { ShapeUpdate } from "./features/smartbar";
 
 /* global Office, PowerPoint */
 
-export type LayoutComputer = (shapes: ShapeBounds[]) => ShapePosition[];
+export type LayoutComputer = (shapes: ShapeBounds[]) => ShapeUpdate[];
 
 export class SmartAlignmentError extends Error {
   constructor(message: string) {
@@ -40,29 +41,25 @@ export async function applyLayout(compute: LayoutComputer): Promise<number> {
         width: shape.width,
         height: shape.height,
       }));
-      let positions: ShapePosition[];
+      let updates: ShapeUpdate[];
       try {
-        positions = compute(bounds);
+        updates = compute(bounds);
       } catch (error) {
         throw new LayoutComputationFailure(error);
       }
-      const positionById = new Map(positions.map((position) => [position.id, position]));
+      const updateById = new Map(updates.map((update) => [update.id, update]));
 
-      const updates = selected.items.map((shape) => {
-        const position = positionById.get(shape.id);
-        if (!position) {
-          throw new SmartAlignmentError(`Layout returned no position for shape ${shape.id}.`);
-        }
-        return { shape, position };
-      });
-
-      updates.forEach(({ shape, position }) => {
-        shape.left = position.left;
-        shape.top = position.top;
+      selected.items.forEach((shape) => {
+        const update = updateById.get(shape.id);
+        if (!update) return;
+        if (update.left !== undefined) shape.left = update.left;
+        if (update.top !== undefined) shape.top = update.top;
+        if (update.width !== undefined) shape.width = update.width;
+        if (update.height !== undefined) shape.height = update.height;
       });
 
       await context.sync();
-      return selected.items.length;
+      return updates.length;
     });
   } catch (error) {
     if (error instanceof SmartAlignmentError) {
