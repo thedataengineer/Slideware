@@ -19,7 +19,15 @@ import {
   parseBrand,
   serializeBrand,
 } from "./features/branding";
-import { dispatch, registerOp } from "./dispatcher";
+import { templateShapes } from "./features/templates";
+import {
+  Automation,
+  Recorder,
+  parseAutomations,
+  serializeAutomations,
+  validateName,
+} from "./features/automations";
+import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
   applyLayout,
   canSelectShapes,
@@ -426,6 +434,136 @@ function bindBrandControls(): void {
   );
 }
 
+const SLIDE_SIZE = { width: 960, height: 540 };
+const AUTOMATIONS_STORAGE_KEY = "slideware.automations";
+const recorder = new Recorder();
+let pendingSteps: ReturnType<Recorder["stop"]> | null = null;
+
+function registerTemplateOp(): void {
+  registerOp("template.insert", {
+    label: "Insert template",
+    recordable: true,
+    run: async (params) => {
+      const name = String(params?.name ?? "");
+      const specs = templateShapes(name, loadBrand(), SLIDE_SIZE);
+      await insertShapes(specs);
+      return `Inserted the ${name.replace(/-/g, " ")} template.`;
+    },
+  });
+}
+
+function bindTemplateControls(): void {
+  document.querySelectorAll<HTMLButtonElement>("[data-template]").forEach((button) => {
+    button.addEventListener(
+      "click",
+      () => void runOp("template.insert", { name: button.dataset.template })
+    );
+  });
+}
+
+function loadAutomations(): Automation[] {
+  try {
+    return parseAutomations(localStorage.getItem(AUTOMATIONS_STORAGE_KEY));
+  } catch {
+    return [];
+  }
+}
+
+function saveAutomations(automations: Automation[]): void {
+  try {
+    localStorage.setItem(AUTOMATIONS_STORAGE_KEY, serializeAutomations(automations));
+  } catch {
+    // Storage unavailable; automations stay session-only.
+  }
+}
+
+function renderAutomations(): void {
+  const list = clearList("automation-list");
+  loadAutomations().forEach((automation) => {
+    const item = document.createElement("li");
+    const title = document.createElement("div");
+    title.textContent = automation.name;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = `${automation.steps.length} steps`;
+    const actions = document.createElement("div");
+    actions.className = "row-actions";
+
+    const runButton = document.createElement("button");
+    runButton.type = "button";
+    runButton.textContent = "Run";
+    runButton.addEventListener("click", () => {
+      void runTask(async () => {
+        for (const step of automation.steps) {
+          await dispatch(step.op, step.params);
+        }
+        return `Ran "${automation.name}" (${automation.steps.length} steps).`;
+      });
+    });
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", () => {
+      saveAutomations(loadAutomations().filter((entry) => entry.name !== automation.name));
+      renderAutomations();
+      showStatus("success", `Deleted "${automation.name}".`);
+    });
+
+    actions.append(runButton, deleteButton);
+    item.append(title, meta, actions);
+    list.appendChild(item);
+  });
+}
+
+function bindAutomationControls(): void {
+  const recordButton = requiredElement<HTMLButtonElement>("record-automation");
+  const saveButton = requiredElement<HTMLButtonElement>("save-automation");
+
+  setRecordListener((id, params) => recorder.recordStep(id, params));
+
+  recordButton.addEventListener("click", () => {
+    if (recorder.isRecording()) {
+      pendingSteps = recorder.stop();
+      recordButton.textContent = "Record";
+      recordButton.classList.remove("recording");
+      saveButton.disabled = pendingSteps.length === 0;
+      showStatus(
+        pendingSteps.length === 0 ? "error" : "success",
+        pendingSteps.length === 0
+          ? "Nothing recorded. Run some actions while recording."
+          : `Recorded ${pendingSteps.length} steps. Name and save the automation.`
+      );
+      return;
+    }
+    recorder.start();
+    pendingSteps = null;
+    saveButton.disabled = true;
+    recordButton.textContent = "Stop";
+    recordButton.classList.add("recording");
+    showStatus("info", "Recording. Run the actions to capture, then press Stop.");
+  });
+
+  saveButton.addEventListener("click", () => {
+    void runTask(async () => {
+      if (!pendingSteps || pendingSteps.length === 0) throw new Error("Record steps first.");
+      const existing = loadAutomations();
+      const name = validateName(
+        requiredElement<HTMLInputElement>("automation-name").value,
+        existing
+      );
+      saveAutomations([...existing, { name, steps: pendingSteps }]);
+      pendingSteps = null;
+      saveButton.disabled = true;
+      requiredElement<HTMLInputElement>("automation-name").value = "";
+      renderAutomations();
+      return `Saved "${name}".`;
+    });
+  });
+
+  renderAutomations();
+}
+
 function bindTabs(): void {
   const tabs = document.querySelectorAll<HTMLButtonElement>("[data-tab]");
   tabs.forEach((tab) => {
@@ -502,10 +640,13 @@ Office.onReady((info) => {
   registerLayoutOps();
   registerSelectionOp();
   registerBrandOps();
+  registerTemplateOp();
   bindTabs();
   bindLayoutControls();
   bindSelectionControls();
   bindCheckerControls();
   bindBrandControls();
+  bindTemplateControls();
+  bindAutomationControls();
   bindShortcuts();
 });
