@@ -17,7 +17,13 @@ const DEFAULT_SLIDE_SIZE: SlideSize = { width: 960, height: 540 };
 const MIN_FONT_SIZE = 12;
 const MAX_FONT_FAMILIES = 3;
 const MAX_TEXT_LENGTH = 300;
-const TEXT_SHAPE_TYPES = new Set(["GeometricShape", "TextBox", "Placeholder", "Freeform", "Callout"]);
+const TEXT_SHAPE_TYPES = new Set([
+  "GeometricShape",
+  "TextBox",
+  "Placeholder",
+  "Freeform",
+  "Callout",
+]);
 
 export function audit(deck: DeckSnapshot, slideSize: SlideSize = DEFAULT_SLIDE_SIZE): Finding[] {
   const findings: Finding[] = [];
@@ -34,7 +40,11 @@ export function audit(deck: DeckSnapshot, slideSize: SlideSize = DEFAULT_SLIDE_S
         shape.left + shape.width > slideSize.width ||
         shape.top + shape.height > slideSize.height
       ) {
-        findings.push({ rule: "off-slide", message: `"${shape.name}" extends beyond the slide.`, ...common });
+        findings.push({
+          rule: "off-slide",
+          message: `"${shape.name}" extends beyond the slide.`,
+          ...common,
+        });
       }
 
       if (hasText && shape.fontName) {
@@ -50,7 +60,11 @@ export function audit(deck: DeckSnapshot, slideSize: SlideSize = DEFAULT_SLIDE_S
       }
 
       if (!hasText && TEXT_SHAPE_TYPES.has(shape.type)) {
-        findings.push({ rule: "empty-text", message: `"${shape.name}" is an empty text shape.`, ...common });
+        findings.push({
+          rule: "empty-text",
+          message: `"${shape.name}" is an empty text shape.`,
+          ...common,
+        });
       }
 
       if (shape.text.length > MAX_TEXT_LENGTH) {

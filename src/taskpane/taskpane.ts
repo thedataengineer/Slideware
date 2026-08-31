@@ -9,15 +9,29 @@ import {
 import { SizeMode, matchSizes, swapPositions } from "./features/smartbar";
 import { matchShapes } from "./features/selection";
 import { audit } from "./features/checker";
+import { buildAgenda } from "./features/agenda";
+import {
+  Brand,
+  brandDeckFormats,
+  brandSelectionFormats,
+  defaultBrand,
+  normalizeHex,
+  parseBrand,
+  serializeBrand,
+} from "./features/branding";
 import { dispatch, registerOp } from "./dispatcher";
 import {
   applyLayout,
   canSelectShapes,
   gotoSlide,
+  insertShapes,
   readSelection,
   setSelection,
   snapshotDeck,
+  writeShapeFormats,
 } from "./powerpoint";
+
+/* global localStorage */
 
 /* global document, Office, HTMLElement, HTMLInputElement, HTMLButtonElement, HTMLSelectElement */
 
@@ -53,7 +67,11 @@ function messageFor(error: unknown): string {
 
 export function showStatus(kind: "info" | "success" | "error", text: string): void {
   const status = requiredElement<HTMLElement>("status");
-  const classes = { info: "status", success: "status status-success", error: "status status-error" };
+  const classes = {
+    info: "status",
+    success: "status status-success",
+    error: "status status-error",
+  };
   status.className = classes[kind];
   status.textContent = text;
 }
@@ -236,11 +254,16 @@ function bindCheckerControls(): void {
       const findings = audit(deck);
       const list = clearList("checker-results");
       findings.forEach((finding) => {
-        const meta = finding.slideIndex ? `Slide ${finding.slideIndex} · ${finding.rule}` : finding.rule;
-        const jump = finding.slideIndex ? () => void runTask(async () => {
-          await gotoSlide(finding.slideIndex as number);
-          return `Moved to slide ${finding.slideIndex}.`;
-        }) : undefined;
+        const meta = finding.slideIndex
+          ? `Slide ${finding.slideIndex} · ${finding.rule}`
+          : finding.rule;
+        const jump = finding.slideIndex
+          ? () =>
+              void runTask(async () => {
+                await gotoSlide(finding.slideIndex as number);
+                return `Moved to slide ${finding.slideIndex}.`;
+              })
+          : undefined;
         addListItem(list, finding.message, meta, jump);
       });
       return findings.length === 0
@@ -248,6 +271,159 @@ function bindCheckerControls(): void {
         : `Checker found ${findings.length} issues.`;
     });
   });
+}
+
+const BRAND_STORAGE_KEY = "slideware.brand";
+
+function loadBrand(): Brand {
+  try {
+    return parseBrand(localStorage.getItem(BRAND_STORAGE_KEY));
+  } catch {
+    return defaultBrand();
+  }
+}
+
+function saveBrand(brand: Brand): void {
+  try {
+    localStorage.setItem(BRAND_STORAGE_KEY, serializeBrand(brand));
+  } catch {
+    // Storage unavailable; brand stays session-only.
+  }
+}
+
+function brandFromForm(): Brand {
+  const colors = [0, 1, 2, 3, 4, 5].map((index) =>
+    normalizeHex(requiredElement<HTMLInputElement>(`brand-color-${index}`).value)
+  );
+  return {
+    headingFont: requiredElement<HTMLInputElement>("brand-heading-font").value.trim() || "Segoe UI",
+    bodyFont: requiredElement<HTMLInputElement>("brand-body-font").value.trim() || "Segoe UI",
+    colors,
+  };
+}
+
+function renderBrandForm(brand: Brand): void {
+  requiredElement<HTMLInputElement>("brand-heading-font").value = brand.headingFont;
+  requiredElement<HTMLInputElement>("brand-body-font").value = brand.bodyFont;
+  brand.colors.forEach((color, index) => {
+    requiredElement<HTMLInputElement>(`brand-color-${index}`).value = color;
+  });
+  renderSwatches(brand);
+}
+
+function renderSwatches(brand: Brand): void {
+  const container = requiredElement<HTMLElement>("swatches");
+  container.textContent = "";
+  brand.colors.forEach((color) => {
+    const swatch = document.createElement("button");
+    swatch.type = "button";
+    swatch.style.background = color;
+    swatch.title = `Apply ${color}`;
+    swatch.setAttribute("aria-label", `Apply ${color}`);
+    swatch.addEventListener("click", () => {
+      const mode = requiredElement<HTMLSelectElement>("swatch-mode").value;
+      void runTask(async () => {
+        const selected = await readSelection();
+        if (selected.length === 0) throw new Error("Select at least 1 shape.");
+        const formats = selected.map((shape) =>
+          mode === "fill" ? { id: shape.id, fillColor: color } : { id: shape.id, fontColor: color }
+        );
+        const applied = await writeShapeFormats(formats);
+        return `Applied ${color} as ${mode === "fill" ? "fill" : "text color"} to ${applied} shapes.`;
+      });
+    });
+    container.appendChild(swatch);
+  });
+}
+
+function registerBrandOps(): void {
+  registerOp("brand.applySelection", {
+    label: "Apply brand to selection",
+    recordable: true,
+    run: async () => {
+      const selected = await readSelection();
+      if (selected.length === 0) throw new Error("Select at least 1 shape.");
+      const formats = brandSelectionFormats(selected, loadBrand());
+      if (formats.length === 0) throw new Error("The selection has no text to brand.");
+      const applied = await writeShapeFormats(formats);
+      return `Branded ${applied} shapes.`;
+    },
+  });
+
+  registerOp("brand.applyDeck", {
+    label: "Fix fonts across deck",
+    recordable: true,
+    run: async () => {
+      const deck = await snapshotDeck();
+      const formats = brandDeckFormats(deck, loadBrand());
+      if (formats.length === 0) throw new Error("The deck has no text shapes.");
+      const applied = await writeShapeFormats(formats);
+      return `Set the brand font on ${applied} shapes.`;
+    },
+  });
+
+  registerOp("agenda.insert", {
+    label: "Insert agenda",
+    recordable: true,
+    run: async () => {
+      const deck = await snapshotDeck();
+      const titles = deck.slides.slice(1).map((slide) => slide.title);
+      const agenda = buildAgenda(titles);
+      const brand = loadBrand();
+      await insertShapes([
+        {
+          kind: "textbox",
+          left: 60,
+          top: 60,
+          width: 600,
+          height: 40,
+          text: "Agenda",
+          fontName: brand.headingFont,
+          fontSize: 28,
+          fontColor: brand.colors[0],
+          bold: true,
+        },
+        {
+          kind: "textbox",
+          left: 60,
+          top: 120,
+          width: 600,
+          height: 40 + agenda.lines.length * 24,
+          text: agenda.text,
+          fontName: brand.bodyFont,
+          fontSize: 18,
+          fontColor: brand.colors[0],
+        },
+      ]);
+      return `Inserted an agenda with ${agenda.lines.length} items.`;
+    },
+  });
+}
+
+function bindBrandControls(): void {
+  renderBrandForm(loadBrand());
+
+  requiredElement<HTMLButtonElement>("save-brand").addEventListener("click", () => {
+    void runTask(async () => {
+      const brand = brandFromForm();
+      saveBrand(brand);
+      renderSwatches(brand);
+      return "Brand saved.";
+    });
+  });
+
+  requiredElement<HTMLButtonElement>("apply-brand-selection").addEventListener(
+    "click",
+    () => void runOp("brand.applySelection")
+  );
+  requiredElement<HTMLButtonElement>("apply-brand-deck").addEventListener(
+    "click",
+    () => void runOp("brand.applyDeck")
+  );
+  requiredElement<HTMLButtonElement>("insert-agenda").addEventListener(
+    "click",
+    () => void runOp("agenda.insert")
+  );
 }
 
 function bindTabs(): void {
@@ -325,9 +501,11 @@ Office.onReady((info) => {
   requiredElement<HTMLElement>("app-body").hidden = false;
   registerLayoutOps();
   registerSelectionOp();
+  registerBrandOps();
   bindTabs();
   bindLayoutControls();
   bindSelectionControls();
   bindCheckerControls();
+  bindBrandControls();
   bindShortcuts();
 });

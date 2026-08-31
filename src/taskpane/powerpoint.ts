@@ -39,7 +39,13 @@ class LayoutComputationFailure {
   constructor(readonly cause: unknown) {}
 }
 
-const TEXT_SHAPE_TYPES = new Set(["GeometricShape", "TextBox", "Placeholder", "Freeform", "Callout"]);
+const TEXT_SHAPE_TYPES = new Set([
+  "GeometricShape",
+  "TextBox",
+  "Placeholder",
+  "Freeform",
+  "Callout",
+]);
 
 function assertSupported(): void {
   if (!Office.context.requirements.isSetSupported("PowerPointApi", "1.5")) {
