@@ -26,6 +26,7 @@ h1 { margin: 0; font-size: 22px; line-height: 1.2; }
 .tabs button[aria-selected="true"] { color: #0f6cbd; border-bottom-color: #0f6cbd; font-weight: 600; }
 .tabs button:hover { background: #eef3f7; }
 [data-panel][hidden] { display: none; }
+[hidden] { display: none !important; }
 
 .panel { margin-top: 12px; padding: 14px; border: 1px solid #d9dee3; border-radius: 10px; background: #fff; }
 .panel h2 { margin: 0 0 10px; font-size: 15px; }

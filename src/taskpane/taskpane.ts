@@ -36,7 +36,8 @@ import {
   translatePrompt,
 } from "./features/prompts";
 import { searchDeck } from "./features/search";
-import { callClaude } from "./ai";
+import { parseAiSettings } from "./features/ai-settings";
+import { callAi, loadAiSettings, saveAiSettings } from "./ai";
 import { connectBridge, disconnectBridge, isBridgeConnected, onBridgeStatus } from "./bridge";
 import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
@@ -576,16 +577,6 @@ function bindAutomationControls(): void {
   renderAutomations();
 }
 
-const API_KEY_STORAGE_KEY = "slideware.apiKey";
-
-function loadApiKey(): string {
-  try {
-    return localStorage.getItem(API_KEY_STORAGE_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
-
 async function selectedTextShape(): Promise<{ id: string; text: string }> {
   const selected = await readSelection();
   const withText = selected.find((shape) => shape.text.trim().length > 0);
@@ -606,16 +597,43 @@ function deckOutline(deck: Awaited<ReturnType<typeof snapshotDeck>>): string {
 }
 
 function bindAiControls(): void {
+  const providerSelect = requiredElement<HTMLSelectElement>("ai-provider");
   const apiKeyInput = requiredElement<HTMLInputElement>("api-key");
-  apiKeyInput.value = loadApiKey();
-  requiredElement<HTMLButtonElement>("save-api-key").addEventListener("click", () => {
+  const ollamaUrlInput = requiredElement<HTMLInputElement>("ollama-url");
+  const ollamaModelInput = requiredElement<HTMLInputElement>("ollama-model");
+
+  const settings = loadAiSettings();
+  providerSelect.value = settings.provider;
+  apiKeyInput.value = settings.apiKey;
+  ollamaUrlInput.value = settings.ollamaUrl;
+  ollamaModelInput.value = settings.ollamaModel;
+
+  const syncProviderFields = (): void => {
+    const ollama = providerSelect.value === "ollama";
+    requiredElement<HTMLElement>("claude-settings").hidden = ollama;
+    requiredElement<HTMLElement>("ollama-settings").hidden = !ollama;
+  };
+  syncProviderFields();
+  providerSelect.addEventListener("change", syncProviderFields);
+
+  requiredElement<HTMLButtonElement>("save-ai-settings").addEventListener("click", () => {
     void runTask(async () => {
       try {
-        localStorage.setItem(API_KEY_STORAGE_KEY, apiKeyInput.value.trim());
+        saveAiSettings(
+          parseAiSettings(
+            JSON.stringify({
+              provider: providerSelect.value,
+              apiKey: apiKeyInput.value.trim(),
+              ollamaUrl: ollamaUrlInput.value.trim(),
+              ollamaModel: ollamaModelInput.value.trim(),
+            })
+          )
+        );
       } catch {
-        throw new Error("This browser blocks storage; the key cannot be saved.");
+        throw new Error("This browser blocks storage; settings cannot be saved.");
       }
-      return "API key saved to this browser profile.";
+      const label = providerSelect.value === "ollama" ? "Ollama (local)" : "Claude API";
+      return `AI settings saved. Provider: ${label}.`;
     });
   });
 
@@ -624,8 +642,7 @@ function bindAiControls(): void {
       void runTask(async () => {
         const target = await selectedTextShape();
         const prompt = presetPrompt(target.text, button.dataset.preset as string);
-        const result = await callClaude({
-          apiKey: loadApiKey(),
+        const result = await callAi({
           system: prompt.system,
           messages: [{ role: "user", content: prompt.user }],
         });
@@ -641,8 +658,7 @@ function bindAiControls(): void {
       if (!instruction) throw new Error("Describe the edit first.");
       const target = await selectedTextShape();
       const prompt = editPrompt(target.text, instruction);
-      const result = await callClaude({
-        apiKey: loadApiKey(),
+      const result = await callAi({
         system: prompt.system,
         messages: [{ role: "user", content: prompt.user }],
       });
@@ -656,8 +672,7 @@ function bindAiControls(): void {
       const topic = requiredElement<HTMLInputElement>("create-topic").value.trim();
       if (!topic) throw new Error("Describe the slide first.");
       const prompt = createPrompt(topic);
-      const raw = await callClaude({
-        apiKey: loadApiKey(),
+      const raw = await callAi({
         system: prompt.system,
         messages: [{ role: "user", content: prompt.user }],
       });
@@ -700,8 +715,7 @@ function bindAiControls(): void {
       if (textShapes.length === 0) throw new Error("Select shapes that contain text.");
       for (const shape of textShapes) {
         const prompt = translatePrompt(shape.text, language);
-        const result = await callClaude({
-          apiKey: loadApiKey(),
+        const result = await callAi({
           system: prompt.system,
           messages: [{ role: "user", content: prompt.user }],
         });
@@ -766,8 +780,7 @@ function bindDarwinControls(): void {
       input.value = "";
       darwinHistory.push({ role: "user", content: question });
       const deck = await snapshotDeck();
-      const answer = await callClaude({
-        apiKey: loadApiKey(),
+      const answer = await callAi({
         system: darwinSystem(deckOutline(deck)),
         messages: darwinHistory.map((turn) => ({ role: turn.role, content: turn.content })),
       });

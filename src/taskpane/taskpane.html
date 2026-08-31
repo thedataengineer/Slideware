@@ -101,7 +101,7 @@
 
       <section class="panel" aria-labelledby="ai-edit-heading">
         <h2 id="ai-edit-heading">AI Editing</h2>
-        <p class="hint">Rewrites the text of the selected shape. Needs an API key (Gen AI tab).</p>
+        <p class="hint">Rewrites the text of the selected shape. Uses the AI provider set in the Gen AI tab.</p>
         <div class="button-grid button-grid-2">
           <button type="button" data-preset="proofread">Proofread</button>
           <button type="button" data-preset="shorten">Shorten</button>
@@ -196,13 +196,25 @@
     </div>
 
     <div data-panel="genai" hidden>
-      <section class="panel" aria-labelledby="apikey-heading">
-        <h2 id="apikey-heading">Anthropic API key</h2>
-        <p class="hint">Stored only in this browser profile. Required for AI features.</p>
+      <section class="panel" aria-labelledby="ai-provider-heading">
+        <h2 id="ai-provider-heading">AI provider</h2>
+        <p class="hint">Settings stay in this browser profile. Powers every AI feature in the add-in.</p>
         <div class="field-grid field-grid-1">
+          <label>Provider
+            <select id="ai-provider">
+              <option value="claude">Claude API</option>
+              <option value="ollama">Ollama (local)</option>
+            </select>
+          </label>
+        </div>
+        <div id="claude-settings" class="field-grid field-grid-1">
           <label>API key <input id="api-key" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
         </div>
-        <button id="save-api-key" class="primary" type="button">Save key</button>
+        <div id="ollama-settings" class="field-grid" hidden>
+          <label>Server URL <input id="ollama-url" type="text" placeholder="http://localhost:11434"></label>
+          <label>Model <input id="ollama-model" type="text" placeholder="llama3.2"></label>
+        </div>
+        <button id="save-ai-settings" class="primary" type="button">Save AI settings</button>
       </section>
 
       <section class="panel" aria-labelledby="genai-edit-heading">
