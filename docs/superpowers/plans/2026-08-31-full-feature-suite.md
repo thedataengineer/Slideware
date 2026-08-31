@@ -123,3 +123,9 @@
 - Run: npm test, typecheck, lint, build, validate — all green.
 - Update `docs/superpowers/specs` if drifted; check plan boxes; commit.
 - Manual PowerPoint acceptance checklist (user): every panel operates on a real deck; MCP: `node mcp-server/server.js` + Claude Desktop config + Connect toggle.
+
+---
+
+## Status (2026-08-31)
+
+Tasks 1-16 complete and committed; every check green (71 tests, typecheck, lint, webpack build, manifest validate). MCP stdio handshake and WS bridge round-trip verified with a simulated pane. Remaining: manual PowerPoint acceptance (Task 17 checklist) — run `npm run start:desktop:powerpoint`, exercise each panel on a real deck, and for MCP: `cd mcp-server && npm install && node server.js`, register with Claude per mcp-server/README.md, press Connect in the Gen AI tab.
