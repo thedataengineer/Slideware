@@ -29,6 +29,7 @@
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
     "core-js": "^3.36.0",
     "regenerator-runtime": "^0.14.1"
   },

@@ -8,10 +8,15 @@
     "noEmitOnError": true,
     "outDir": "lib",
     "sourceMap": true,
-    "target": "es5",
+    "target": "es2017",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "lib": [
-      "es2015",
+      "es2018",
       "dom"
+    ],
+    "types": [
+      "office-js"
     ]
   },
   "exclude": [

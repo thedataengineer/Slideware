@@ -27,6 +27,15 @@ import {
   serializeAutomations,
   validateName,
 } from "./features/automations";
+import {
+  createPrompt,
+  darwinSystem,
+  editPrompt,
+  parseCreateResponse,
+  presetPrompt,
+  translatePrompt,
+} from "./features/prompts";
+import { callClaude } from "./ai";
 import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
   applyLayout,
@@ -34,6 +43,7 @@ import {
   gotoSlide,
   insertShapes,
   readSelection,
+  replaceShapeText,
   setSelection,
   snapshotDeck,
   writeShapeFormats,
@@ -564,6 +574,187 @@ function bindAutomationControls(): void {
   renderAutomations();
 }
 
+const API_KEY_STORAGE_KEY = "slideware.apiKey";
+
+function loadApiKey(): string {
+  try {
+    return localStorage.getItem(API_KEY_STORAGE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+async function selectedTextShape(): Promise<{ id: string; text: string }> {
+  const selected = await readSelection();
+  const withText = selected.find((shape) => shape.text.trim().length > 0);
+  if (!withText) throw new Error("Select a shape that contains text.");
+  return { id: withText.id, text: withText.text };
+}
+
+function deckOutline(deck: Awaited<ReturnType<typeof snapshotDeck>>): string {
+  return deck.slides
+    .map((slide) => {
+      const texts = slide.shapes
+        .map((shape) => shape.text.trim())
+        .filter((text) => text.length > 0)
+        .join(" | ");
+      return `Slide ${slide.index}: ${slide.title ?? "(untitled)"}\n${texts}`;
+    })
+    .join("\n\n");
+}
+
+function bindAiControls(): void {
+  const apiKeyInput = requiredElement<HTMLInputElement>("api-key");
+  apiKeyInput.value = loadApiKey();
+  requiredElement<HTMLButtonElement>("save-api-key").addEventListener("click", () => {
+    void runTask(async () => {
+      try {
+        localStorage.setItem(API_KEY_STORAGE_KEY, apiKeyInput.value.trim());
+      } catch {
+        throw new Error("This browser blocks storage; the key cannot be saved.");
+      }
+      return "API key saved to this browser profile.";
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-preset]").forEach((button) => {
+    button.addEventListener("click", () => {
+      void runTask(async () => {
+        const target = await selectedTextShape();
+        const prompt = presetPrompt(target.text, button.dataset.preset as string);
+        const result = await callClaude({
+          apiKey: loadApiKey(),
+          system: prompt.system,
+          messages: [{ role: "user", content: prompt.user }],
+        });
+        await replaceShapeText(target.id, result);
+        return `${button.textContent} applied.`;
+      });
+    });
+  });
+
+  requiredElement<HTMLButtonElement>("run-edit").addEventListener("click", () => {
+    void runTask(async () => {
+      const instruction = requiredElement<HTMLInputElement>("edit-instruction").value.trim();
+      if (!instruction) throw new Error("Describe the edit first.");
+      const target = await selectedTextShape();
+      const prompt = editPrompt(target.text, instruction);
+      const result = await callClaude({
+        apiKey: loadApiKey(),
+        system: prompt.system,
+        messages: [{ role: "user", content: prompt.user }],
+      });
+      await replaceShapeText(target.id, result);
+      return "Edit applied.";
+    });
+  });
+
+  requiredElement<HTMLButtonElement>("run-create").addEventListener("click", () => {
+    void runTask(async () => {
+      const topic = requiredElement<HTMLInputElement>("create-topic").value.trim();
+      if (!topic) throw new Error("Describe the slide first.");
+      const prompt = createPrompt(topic);
+      const raw = await callClaude({
+        apiKey: loadApiKey(),
+        system: prompt.system,
+        messages: [{ role: "user", content: prompt.user }],
+      });
+      const content = parseCreateResponse(raw);
+      const brand = loadBrand();
+      await insertShapes([
+        {
+          kind: "textbox",
+          left: 60,
+          top: 60,
+          width: 840,
+          height: 50,
+          text: content.title,
+          fontName: brand.headingFont,
+          fontSize: 30,
+          fontColor: brand.colors[0],
+          bold: true,
+        },
+        {
+          kind: "textbox",
+          left: 60,
+          top: 140,
+          width: 840,
+          height: 60 + content.bullets.length * 28,
+          text: content.bullets.map((bullet) => `• ${bullet}`).join("\n"),
+          fontName: brand.bodyFont,
+          fontSize: 18,
+          fontColor: brand.colors[0],
+        },
+      ]);
+      return `Created "${content.title}" with ${content.bullets.length} bullets.`;
+    });
+  });
+
+  requiredElement<HTMLButtonElement>("run-translate").addEventListener("click", () => {
+    void runTask(async () => {
+      const language = requiredElement<HTMLSelectElement>("translate-language").value;
+      const selected = await readSelection();
+      const textShapes = selected.filter((shape) => shape.text.trim().length > 0);
+      if (textShapes.length === 0) throw new Error("Select shapes that contain text.");
+      for (const shape of textShapes) {
+        const prompt = translatePrompt(shape.text, language);
+        const result = await callClaude({
+          apiKey: loadApiKey(),
+          system: prompt.system,
+          messages: [{ role: "user", content: prompt.user }],
+        });
+        await replaceShapeText(shape.id, result);
+      }
+      return `Translated ${textShapes.length} shapes into ${language}.`;
+    });
+  });
+}
+
+interface ChatTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+const darwinHistory: ChatTurn[] = [];
+
+function appendBubble(role: "user" | "assistant", text: string): void {
+  const log = requiredElement<HTMLElement>("darwin-log");
+  const bubble = document.createElement("div");
+  bubble.className = role === "user" ? "bubble bubble-user" : "bubble bubble-assistant";
+  bubble.textContent = text;
+  log.appendChild(bubble);
+  log.scrollTop = log.scrollHeight;
+}
+
+function bindDarwinControls(): void {
+  const input = requiredElement<HTMLInputElement>("darwin-input");
+  const send = (): void => {
+    const question = input.value.trim();
+    if (!question) return;
+    void runTask(async () => {
+      appendBubble("user", question);
+      input.value = "";
+      darwinHistory.push({ role: "user", content: question });
+      const deck = await snapshotDeck();
+      const answer = await callClaude({
+        apiKey: loadApiKey(),
+        system: darwinSystem(deckOutline(deck)),
+        messages: darwinHistory.map((turn) => ({ role: turn.role, content: turn.content })),
+      });
+      darwinHistory.push({ role: "assistant", content: answer });
+      appendBubble("assistant", answer);
+      return "Darwin replied.";
+    });
+  };
+  requiredElement<HTMLButtonElement>("darwin-send").addEventListener("click", send);
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      send();
+    }
+  });
+}
+
 function bindTabs(): void {
   const tabs = document.querySelectorAll<HTMLButtonElement>("[data-tab]");
   tabs.forEach((tab) => {
@@ -648,5 +839,7 @@ Office.onReady((info) => {
   bindBrandControls();
   bindTemplateControls();
   bindAutomationControls();
+  bindAiControls();
+  bindDarwinControls();
   bindShortcuts();
 });
