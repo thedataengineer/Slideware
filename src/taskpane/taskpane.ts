@@ -35,6 +35,7 @@ import {
   presetPrompt,
   translatePrompt,
 } from "./features/prompts";
+import { searchDeck } from "./features/search";
 import { callClaude } from "./ai";
 import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
@@ -710,6 +711,34 @@ function bindAiControls(): void {
   });
 }
 
+function bindSearchControls(): void {
+  const run = (): void => {
+    void runTask(async () => {
+      const query = requiredElement<HTMLInputElement>("search-query").value;
+      const deck = await snapshotDeck();
+      const hits = searchDeck(deck, query);
+      const list = clearList("search-results");
+      hits.forEach((hit) => {
+        addListItem(list, hit.snippet, `Slide ${hit.slideIndex} · ${hit.shapeName}`, () => {
+          void runTask(async () => {
+            await gotoSlide(hit.slideIndex);
+            if (canSelectShapes()) await setSelection([hit.shapeId]);
+            return `Moved to slide ${hit.slideIndex}.`;
+          });
+        });
+      });
+      return hits.length === 0 ? "No matches found." : `Found ${hits.length} matches.`;
+    });
+  };
+  requiredElement<HTMLButtonElement>("run-search").addEventListener("click", run);
+  requiredElement<HTMLInputElement>("search-query").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      run();
+    }
+  });
+}
+
 interface ChatTurn {
   role: "user" | "assistant";
   content: string;
@@ -840,6 +869,7 @@ Office.onReady((info) => {
   bindTemplateControls();
   bindAutomationControls();
   bindAiControls();
+  bindSearchControls();
   bindDarwinControls();
   bindShortcuts();
 });
