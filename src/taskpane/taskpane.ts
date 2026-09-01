@@ -37,7 +37,7 @@ import {
 } from "./features/prompts";
 import { searchDeck } from "./features/search";
 import { parseAiSettings } from "./features/ai-settings";
-import { callAi, loadAiSettings, saveAiSettings } from "./ai";
+import { callAi, listOllamaModels, loadAiSettings, saveAiSettings } from "./ai";
 import { connectBridge, disconnectBridge, isBridgeConnected, onBridgeStatus } from "./bridge";
 import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
@@ -608,13 +608,31 @@ function bindAiControls(): void {
   ollamaUrlInput.value = settings.ollamaUrl;
   ollamaModelInput.value = settings.ollamaModel;
 
+  const refreshOllamaModels = (): void => {
+    const url = ollamaUrlInput.value.trim().replace(/\/+$/, "");
+    if (!url) return;
+    listOllamaModels(url)
+      .then((models) => {
+        const datalist = requiredElement<HTMLElement>("ollama-models");
+        datalist.textContent = "";
+        models.forEach((model) => {
+          const option = document.createElement("option");
+          option.value = model;
+          datalist.appendChild(option);
+        });
+      })
+      .catch(() => undefined);
+  };
+
   const syncProviderFields = (): void => {
     const ollama = providerSelect.value === "ollama";
     requiredElement<HTMLElement>("claude-settings").hidden = ollama;
     requiredElement<HTMLElement>("ollama-settings").hidden = !ollama;
+    if (ollama) refreshOllamaModels();
   };
   syncProviderFields();
   providerSelect.addEventListener("change", syncProviderFields);
+  ollamaUrlInput.addEventListener("change", refreshOllamaModels);
 
   requiredElement<HTMLButtonElement>("save-ai-settings").addEventListener("click", () => {
     void runTask(async () => {

@@ -136,3 +136,7 @@ Companion process, not part of the web bundle:
 ## Out of scope (v1)
 
 - Manifest keyboard shortcuts (extendedOverrides), new-slide creation (API 1.8 hosts), AI tool-use writes from Darwin, template thumbnails, image/media templates, telemetry of any kind.
+
+## Addendum: Ollama local LLM provider (2026-08-31)
+
+Gen AI features run on a selectable provider stored in localStorage (`slideware.ai`): **Claude API** (BYO key, `@anthropic-ai/sdk`, model `claude-opus-5`) or **Ollama local** (native `POST {url}/api/chat`, `stream: false`, default `http://localhost:11434` / `llama3.2`, no dependency). `callAi` in `ai.ts` routes by provider; settings codec is pure (`features/ai-settings.ts`, tested) and migrates the legacy `slideware.apiKey` value. The model field autocompletes from `GET /api/tags` (completion-capable models only). Verified live: chat round-trip and CORS (`Access-Control-Allow-Origin: https://localhost:3000`) work against a stock Ollama install without `OLLAMA_ORIGINS` changes.

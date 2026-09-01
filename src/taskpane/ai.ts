@@ -126,6 +126,20 @@ async function callOllama(settings: AiSettings, request: AiRequest): Promise<str
   return text;
 }
 
+interface OllamaTagsResponse {
+  models?: { name?: string; capabilities?: string[] }[];
+}
+
+export async function listOllamaModels(url: string): Promise<string[]> {
+  const response = await fetch(`${url}/api/tags`);
+  if (!response.ok) return [];
+  const data = (await response.json()) as OllamaTagsResponse;
+  return (data.models ?? [])
+    .filter((model) => !model.capabilities || model.capabilities.includes("completion"))
+    .map((model) => model.name ?? "")
+    .filter((name) => name.length > 0);
+}
+
 export async function callAi(request: AiRequest): Promise<string> {
   const settings = loadAiSettings();
   return settings.provider === "ollama"

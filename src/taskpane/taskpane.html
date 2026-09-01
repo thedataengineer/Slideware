@@ -212,7 +212,8 @@
         </div>
         <div id="ollama-settings" class="field-grid" hidden>
           <label>Server URL <input id="ollama-url" type="text" placeholder="http://localhost:11434"></label>
-          <label>Model <input id="ollama-model" type="text" placeholder="llama3.2"></label>
+          <label>Model <input id="ollama-model" type="text" list="ollama-models" placeholder="llama3.2"></label>
+          <datalist id="ollama-models"></datalist>
         </div>
         <button id="save-ai-settings" class="primary" type="button">Save AI settings</button>
       </section>
