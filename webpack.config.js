@@ -5,8 +5,11 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 
-const urlDev = "https://localhost:3000/";
+const { applyPort, resolveDevServerPort } = require("./scripts/dev-server-port");
+
+const urlDev = "https://localhost:3000/"; // canonical placeholder in manifest.json
 const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
+const devServerPort = resolveDevServerPort();
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
@@ -86,14 +89,15 @@ module.exports = async (env, options) => {
             to: "assets/[name][ext][query]",
           },
           {
-            from: "manifest*.json",
+            from: "manifest.json",
             to: "[name]" + "[ext]",
             transform(content) {
+              const text = content.toString();
               if (dev) {
-                return content;
-              } else {
-                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
+                return applyPort(text, devServerPort);
               }
+              // Match the bare origin too, so websiteUrl and friends are rewritten as well.
+              return text.replace(new RegExp(urlDev.replace(/\/$/, ""), "g"), urlProd.replace(/\/$/, ""));
             },
           },
         ],
@@ -117,7 +121,7 @@ module.exports = async (env, options) => {
         type: "https",
         options: env.WEBPACK_BUILD || options.https !== undefined ? options.https : await getHttpsOptions(),
       },
-      port: process.env.npm_package_config_dev_server_port || 3000,
+      port: devServerPort,
     },
   };
 

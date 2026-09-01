@@ -22,10 +22,11 @@
     "prettier": "office-addin-lint prettier",
     "signin": "office-addin-dev-settings m365-account login",
     "signout": "office-addin-dev-settings m365-account logout",
-    "start": "office-addin-debugging start manifest.json",
-    "start:desktop:powerpoint": "office-addin-debugging start manifest.json desktop --app powerpoint",
-    "stop": "office-addin-debugging stop manifest.json",
-    "validate": "office-addin-manifest validate manifest.json",
+    "manifest": "node scripts/build-manifest.js",
+    "start": "npm run manifest && office-addin-debugging start manifest.local.json",
+    "start:desktop:powerpoint": "npm run manifest && office-addin-debugging start manifest.local.json desktop --app powerpoint",
+    "stop": "npm run manifest && office-addin-debugging stop manifest.local.json",
+    "validate": "npm run manifest && office-addin-manifest validate manifest.local.json",
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
