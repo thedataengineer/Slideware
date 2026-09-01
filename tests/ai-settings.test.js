@@ -10,10 +10,20 @@ test("round-trips settings through serialization", () => {
   const settings = {
     provider: "ollama",
     apiKey: "sk-ant-x",
+    claudeModel: "claude-sonnet-5",
     ollamaUrl: "http://localhost:11434",
     ollamaModel: "llama3.2",
   };
   assert.deepEqual(parseAiSettings(serializeAiSettings(settings)), settings);
+});
+
+test("defaults the claude model and keeps custom ones", () => {
+  assert.equal(parseAiSettings(null).claudeModel, "claude-opus-5");
+  assert.equal(
+    parseAiSettings(JSON.stringify({ claudeModel: "claude-fable-5" })).claudeModel,
+    "claude-fable-5"
+  );
+  assert.equal(parseAiSettings(JSON.stringify({ claudeModel: "  " })).claudeModel, "claude-opus-5");
 });
 
 test("falls back to defaults on corrupt or missing input", () => {

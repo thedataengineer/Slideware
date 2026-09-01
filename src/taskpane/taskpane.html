@@ -207,8 +207,10 @@
             </select>
           </label>
         </div>
-        <div id="claude-settings" class="field-grid field-grid-1">
+        <div id="claude-settings" class="field-grid">
           <label>API key <input id="api-key" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
+          <label>Model <input id="claude-model" type="text" list="claude-models" placeholder="claude-opus-5"></label>
+          <datalist id="claude-models"></datalist>
         </div>
         <div id="ollama-settings" class="field-grid" hidden>
           <label>Server URL <input id="ollama-url" type="text" placeholder="http://localhost:11434"></label>

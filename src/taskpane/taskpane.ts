@@ -37,7 +37,7 @@ import {
 } from "./features/prompts";
 import { searchDeck } from "./features/search";
 import { parseAiSettings } from "./features/ai-settings";
-import { callAi, listOllamaModels, loadAiSettings, saveAiSettings } from "./ai";
+import { callAi, listClaudeModels, listOllamaModels, loadAiSettings, saveAiSettings } from "./ai";
 import { connectBridge, disconnectBridge, isBridgeConnected, onBridgeStatus } from "./bridge";
 import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
@@ -599,28 +599,38 @@ function deckOutline(deck: Awaited<ReturnType<typeof snapshotDeck>>): string {
 function bindAiControls(): void {
   const providerSelect = requiredElement<HTMLSelectElement>("ai-provider");
   const apiKeyInput = requiredElement<HTMLInputElement>("api-key");
+  const claudeModelInput = requiredElement<HTMLInputElement>("claude-model");
   const ollamaUrlInput = requiredElement<HTMLInputElement>("ollama-url");
   const ollamaModelInput = requiredElement<HTMLInputElement>("ollama-model");
 
   const settings = loadAiSettings();
   providerSelect.value = settings.provider;
   apiKeyInput.value = settings.apiKey;
+  claudeModelInput.value = settings.claudeModel;
   ollamaUrlInput.value = settings.ollamaUrl;
   ollamaModelInput.value = settings.ollamaModel;
+
+  const fillDatalist = (id: string, models: string[]): void => {
+    const datalist = requiredElement<HTMLElement>(id);
+    datalist.textContent = "";
+    models.forEach((model) => {
+      const option = document.createElement("option");
+      option.value = model;
+      datalist.appendChild(option);
+    });
+  };
+
+  const refreshClaudeModels = (): void => {
+    listClaudeModels(apiKeyInput.value.trim())
+      .then((models) => fillDatalist("claude-models", models))
+      .catch(() => undefined);
+  };
 
   const refreshOllamaModels = (): void => {
     const url = ollamaUrlInput.value.trim().replace(/\/+$/, "");
     if (!url) return;
     listOllamaModels(url)
-      .then((models) => {
-        const datalist = requiredElement<HTMLElement>("ollama-models");
-        datalist.textContent = "";
-        models.forEach((model) => {
-          const option = document.createElement("option");
-          option.value = model;
-          datalist.appendChild(option);
-        });
-      })
+      .then((models) => fillDatalist("ollama-models", models))
       .catch(() => undefined);
   };
 
@@ -629,10 +639,12 @@ function bindAiControls(): void {
     requiredElement<HTMLElement>("claude-settings").hidden = ollama;
     requiredElement<HTMLElement>("ollama-settings").hidden = !ollama;
     if (ollama) refreshOllamaModels();
+    else refreshClaudeModels();
   };
   syncProviderFields();
   providerSelect.addEventListener("change", syncProviderFields);
   ollamaUrlInput.addEventListener("change", refreshOllamaModels);
+  apiKeyInput.addEventListener("change", refreshClaudeModels);
 
   requiredElement<HTMLButtonElement>("save-ai-settings").addEventListener("click", () => {
     void runTask(async () => {
@@ -642,6 +654,7 @@ function bindAiControls(): void {
             JSON.stringify({
               provider: providerSelect.value,
               apiKey: apiKeyInput.value.trim(),
+              claudeModel: claudeModelInput.value.trim(),
               ollamaUrl: ollamaUrlInput.value.trim(),
               ollamaModel: ollamaModelInput.value.trim(),
             })

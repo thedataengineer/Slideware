@@ -9,6 +9,17 @@ import {
 /* global localStorage, fetch, Response */
 
 export const AI_MODEL = "claude-opus-5";
+
+export const CLAUDE_MODELS = [
+  "claude-opus-5",
+  "claude-fable-5",
+  "claude-sonnet-5",
+  "claude-opus-4-8",
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+  "claude-sonnet-4-6",
+  "claude-haiku-4-5",
+];
 const AI_SETTINGS_STORAGE_KEY = "slideware.ai";
 const LEGACY_API_KEY_STORAGE_KEY = "slideware.apiKey";
 
@@ -44,7 +55,7 @@ async function callClaude(settings: AiSettings, request: AiRequest): Promise<str
 
   try {
     const response = await client.messages.create({
-      model: AI_MODEL,
+      model: settings.claudeModel || AI_MODEL,
       max_tokens: request.maxTokens ?? 16000,
       system: request.system,
       messages: request.messages,
@@ -124,6 +135,20 @@ async function callOllama(settings: AiSettings, request: AiRequest): Promise<str
     throw new Error("Ollama returned no text. Try again or switch models.");
   }
   return text;
+}
+
+export async function listClaudeModels(apiKey: string): Promise<string[]> {
+  if (!apiKey) return CLAUDE_MODELS;
+  try {
+    const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+    const models: string[] = [];
+    for await (const model of client.models.list()) {
+      models.push(model.id);
+    }
+    return models.length > 0 ? models : CLAUDE_MODELS;
+  } catch {
+    return CLAUDE_MODELS;
+  }
 }
 
 interface OllamaTagsResponse {

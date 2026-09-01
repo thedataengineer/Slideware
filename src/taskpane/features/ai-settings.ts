@@ -3,6 +3,7 @@ export type AiProvider = "claude" | "ollama";
 export interface AiSettings {
   provider: AiProvider;
   apiKey: string;
+  claudeModel: string;
   ollamaUrl: string;
   ollamaModel: string;
 }
@@ -11,6 +12,7 @@ export function defaultAiSettings(): AiSettings {
   return {
     provider: "claude",
     apiKey: "",
+    claudeModel: "claude-opus-5",
     ollamaUrl: "http://localhost:11434",
     ollamaModel: "llama3.2",
   };
@@ -37,6 +39,10 @@ export function parseAiSettings(raw: string | null): AiSettings {
     return {
       provider,
       apiKey: typeof parsed.apiKey === "string" ? parsed.apiKey : defaults.apiKey,
+      claudeModel:
+        typeof parsed.claudeModel === "string" && parsed.claudeModel.trim().length > 0
+          ? parsed.claudeModel.trim()
+          : defaults.claudeModel,
       ollamaUrl,
       ollamaModel:
         typeof parsed.ollamaModel === "string" && parsed.ollamaModel.trim().length > 0
