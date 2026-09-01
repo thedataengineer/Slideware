@@ -64,6 +64,10 @@ async function executeTool(tool: string, args: Record<string, unknown>): Promise
       return dispatch("template.insert", { name: args.name });
     case "insert_agenda":
       return dispatch("agenda.insert");
+    case "split_text_box":
+      return dispatch("text.split");
+    case "merge_text_boxes":
+      return dispatch("text.merge");
     case "run_checker": {
       const deck = await snapshotDeck();
       const findings = audit(deck);

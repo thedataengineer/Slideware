@@ -131,12 +131,14 @@ function toSnapshotShape(loaded: LoadedShape): SnapshotShape {
   let fillColor: string | undefined;
   let fontName: string | undefined;
   let fontSize: number | undefined;
+  let fontColor: string | undefined;
   if (hasTextCapability) {
     try {
       text = shape.textFrame.textRange.text ?? "";
       fillColor = shape.fill.foregroundColor ?? undefined;
       fontName = shape.textFrame.textRange.font.name ?? undefined;
       fontSize = shape.textFrame.textRange.font.size ?? undefined;
+      fontColor = shape.textFrame.textRange.font.color ?? undefined;
     } catch {
       text = "";
     }
@@ -153,6 +155,7 @@ function toSnapshotShape(loaded: LoadedShape): SnapshotShape {
     fillColor,
     fontName,
     fontSize,
+    fontColor,
   };
 }
 
@@ -297,6 +300,40 @@ export async function insertShapes(specs: InsertShapeSpec[]): Promise<number> {
     });
   } catch (error) {
     throw wrapError(error, "PowerPoint could not insert shapes.");
+  }
+}
+
+export async function deleteShapes(shapeIds: string[]): Promise<number> {
+  assertSupported();
+  if (shapeIds.length === 0) return 0;
+
+  try {
+    return await PowerPoint.run(async (context) => {
+      const idsToDelete = new Set(shapeIds);
+      const slides = context.presentation.slides;
+      slides.load("items");
+      await context.sync();
+
+      slides.items.forEach((slide) => slide.shapes.load("items"));
+      await context.sync();
+
+      const allShapes: PowerPoint.Shape[] = [];
+      slides.items.forEach((slide) => allShapes.push(...slide.shapes.items));
+      allShapes.forEach((shape) => shape.load("id"));
+      await context.sync();
+
+      let deleted = 0;
+      allShapes.forEach((shape) => {
+        if (idsToDelete.has(shape.id)) {
+          shape.delete();
+          deleted += 1;
+        }
+      });
+      await context.sync();
+      return deleted;
+    });
+  } catch (error) {
+    throw wrapError(error, "PowerPoint could not delete the original shapes.");
   }
 }
 

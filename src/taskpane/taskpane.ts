@@ -36,6 +36,7 @@ import {
   translatePrompt,
 } from "./features/prompts";
 import { searchDeck } from "./features/search";
+import { mergeTextBoxes, splitTextBox } from "./features/textboxes";
 import { parseAiSettings } from "./features/ai-settings";
 import {
   callAi,
@@ -50,6 +51,7 @@ import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
   applyLayout,
   canSelectShapes,
+  deleteShapes,
   gotoSlide,
   insertShapes,
   readSelection,
@@ -228,6 +230,45 @@ function registerSelectionOp(): void {
       return `Matched ${ids.length} shapes (selection needs API 1.6): ${names}`;
     },
   });
+}
+
+function registerTextBoxOps(): void {
+  registerOp("text.split", {
+    label: "Split text box",
+    recordable: true,
+    run: async () => {
+      const selected = await readSelection();
+      const target = selected.find((shape) => shape.text.trim().length > 0);
+      if (!target) throw new Error("Select a text box with text to split.");
+      const result = splitTextBox(target);
+      await insertShapes(result.inserts);
+      await deleteShapes(result.deleteIds);
+      return `Split into ${result.inserts.length} text boxes.`;
+    },
+  });
+
+  registerOp("text.merge", {
+    label: "Merge text boxes",
+    recordable: true,
+    run: async () => {
+      const selected = await readSelection();
+      const result = mergeTextBoxes(selected);
+      await insertShapes([result.insert]);
+      await deleteShapes(result.deleteIds);
+      return `Merged ${result.deleteIds.length} text boxes into 1.`;
+    },
+  });
+}
+
+function bindTextBoxControls(): void {
+  requiredElement<HTMLButtonElement>("split-textbox").addEventListener(
+    "click",
+    () => void runOp("text.split")
+  );
+  requiredElement<HTMLButtonElement>("merge-textboxes").addEventListener(
+    "click",
+    () => void runOp("text.merge")
+  );
 }
 
 function bindSelectionControls(): void {
@@ -965,9 +1006,11 @@ Office.onReady((info) => {
   registerSelectionOp();
   registerBrandOps();
   registerTemplateOp();
+  registerTextBoxOps();
   bindTabs();
   bindLayoutControls();
   bindSelectionControls();
+  bindTextBoxControls();
   bindCheckerControls();
   bindBrandControls();
   bindTemplateControls();

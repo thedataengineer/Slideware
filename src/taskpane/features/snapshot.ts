@@ -10,6 +10,7 @@ export interface SnapshotShape {
   fillColor?: string;
   fontName?: string;
   fontSize?: number;
+  fontColor?: string;
 }
 
 export interface SnapshotSlide {

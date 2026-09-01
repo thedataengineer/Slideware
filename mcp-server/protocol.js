@@ -142,6 +142,16 @@ const TOOLS = [
     },
   },
   {
+    name: "split_text_box",
+    description: "Split the selected multi-line text box into one text box per line.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "merge_text_boxes",
+    description: "Merge the selected text boxes into one, joining text in selection order.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
     name: "set_shape_text",
     description: "Replace the text of a shape by its id (ids come from other tools).",
     inputSchema: {
