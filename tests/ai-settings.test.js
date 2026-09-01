@@ -13,8 +13,20 @@ test("round-trips settings through serialization", () => {
     claudeModel: "claude-sonnet-5",
     ollamaUrl: "http://localhost:11434",
     ollamaModel: "llama3.2",
+    openaiUrl: "https://api.groq.com/openai/v1",
+    openaiKey: "gsk-x",
+    openaiModel: "llama-3.3-70b-versatile",
   };
   assert.deepEqual(parseAiSettings(serializeAiSettings(settings)), settings);
+});
+
+test("accepts the openai provider and normalizes its url", () => {
+  const parsed = parseAiSettings(
+    JSON.stringify({ provider: "openai", openaiUrl: "https://api.openai.com/v1/" })
+  );
+  assert.equal(parsed.provider, "openai");
+  assert.equal(parsed.openaiUrl, "https://api.openai.com/v1");
+  assert.equal(parsed.openaiModel, "gpt-4o-mini");
 });
 
 test("defaults the claude model and keeps custom ones", () => {
@@ -33,7 +45,7 @@ test("falls back to defaults on corrupt or missing input", () => {
 });
 
 test("rejects unknown providers but keeps valid fields", () => {
-  const parsed = parseAiSettings(JSON.stringify({ provider: "openai", apiKey: "k" }));
+  const parsed = parseAiSettings(JSON.stringify({ provider: "bedrock", apiKey: "k" }));
   assert.equal(parsed.provider, "claude");
   assert.equal(parsed.apiKey, "k");
 });

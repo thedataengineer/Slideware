@@ -37,7 +37,14 @@ import {
 } from "./features/prompts";
 import { searchDeck } from "./features/search";
 import { parseAiSettings } from "./features/ai-settings";
-import { callAi, listClaudeModels, listOllamaModels, loadAiSettings, saveAiSettings } from "./ai";
+import {
+  callAi,
+  listClaudeModels,
+  listOllamaModels,
+  listOpenAiModels,
+  loadAiSettings,
+  saveAiSettings,
+} from "./ai";
 import { connectBridge, disconnectBridge, isBridgeConnected, onBridgeStatus } from "./bridge";
 import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
@@ -602,6 +609,9 @@ function bindAiControls(): void {
   const claudeModelInput = requiredElement<HTMLInputElement>("claude-model");
   const ollamaUrlInput = requiredElement<HTMLInputElement>("ollama-url");
   const ollamaModelInput = requiredElement<HTMLInputElement>("ollama-model");
+  const openaiUrlInput = requiredElement<HTMLInputElement>("openai-url");
+  const openaiKeyInput = requiredElement<HTMLInputElement>("openai-key");
+  const openaiModelInput = requiredElement<HTMLInputElement>("openai-model");
 
   const settings = loadAiSettings();
   providerSelect.value = settings.provider;
@@ -609,6 +619,9 @@ function bindAiControls(): void {
   claudeModelInput.value = settings.claudeModel;
   ollamaUrlInput.value = settings.ollamaUrl;
   ollamaModelInput.value = settings.ollamaModel;
+  openaiUrlInput.value = settings.openaiUrl;
+  openaiKeyInput.value = settings.openaiKey;
+  openaiModelInput.value = settings.openaiModel;
 
   const fillDatalist = (id: string, models: string[]): void => {
     const datalist = requiredElement<HTMLElement>(id);
@@ -634,17 +647,29 @@ function bindAiControls(): void {
       .catch(() => undefined);
   };
 
+  const refreshOpenAiModels = (): void => {
+    const url = openaiUrlInput.value.trim().replace(/\/+$/, "");
+    if (!url) return;
+    listOpenAiModels(url, openaiKeyInput.value.trim())
+      .then((models) => fillDatalist("openai-models", models))
+      .catch(() => undefined);
+  };
+
   const syncProviderFields = (): void => {
-    const ollama = providerSelect.value === "ollama";
-    requiredElement<HTMLElement>("claude-settings").hidden = ollama;
-    requiredElement<HTMLElement>("ollama-settings").hidden = !ollama;
-    if (ollama) refreshOllamaModels();
-    else refreshClaudeModels();
+    const provider = providerSelect.value;
+    requiredElement<HTMLElement>("claude-settings").hidden = provider !== "claude";
+    requiredElement<HTMLElement>("ollama-settings").hidden = provider !== "ollama";
+    requiredElement<HTMLElement>("openai-settings").hidden = provider !== "openai";
+    if (provider === "ollama") refreshOllamaModels();
+    if (provider === "claude") refreshClaudeModels();
+    if (provider === "openai") refreshOpenAiModels();
   };
   syncProviderFields();
   providerSelect.addEventListener("change", syncProviderFields);
   ollamaUrlInput.addEventListener("change", refreshOllamaModels);
   apiKeyInput.addEventListener("change", refreshClaudeModels);
+  openaiUrlInput.addEventListener("change", refreshOpenAiModels);
+  openaiKeyInput.addEventListener("change", refreshOpenAiModels);
 
   requiredElement<HTMLButtonElement>("save-ai-settings").addEventListener("click", () => {
     void runTask(async () => {
@@ -657,14 +682,21 @@ function bindAiControls(): void {
               claudeModel: claudeModelInput.value.trim(),
               ollamaUrl: ollamaUrlInput.value.trim(),
               ollamaModel: ollamaModelInput.value.trim(),
+              openaiUrl: openaiUrlInput.value.trim(),
+              openaiKey: openaiKeyInput.value.trim(),
+              openaiModel: openaiModelInput.value.trim(),
             })
           )
         );
       } catch {
         throw new Error("This browser blocks storage; settings cannot be saved.");
       }
-      const label = providerSelect.value === "ollama" ? "Ollama (local)" : "Claude API";
-      return `AI settings saved. Provider: ${label}.`;
+      const labels: Record<string, string> = {
+        claude: "Claude API",
+        ollama: "Ollama (local)",
+        openai: "OpenAI-compatible API",
+      };
+      return `AI settings saved. Provider: ${labels[providerSelect.value] ?? providerSelect.value}.`;
     });
   });
 

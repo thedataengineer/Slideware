@@ -204,6 +204,7 @@
             <select id="ai-provider">
               <option value="claude">Claude API</option>
               <option value="ollama">Ollama (local)</option>
+              <option value="openai">OpenAI-compatible API</option>
             </select>
           </label>
         </div>
@@ -216,6 +217,12 @@
           <label>Server URL <input id="ollama-url" type="text" placeholder="http://localhost:11434"></label>
           <label>Model <input id="ollama-model" type="text" list="ollama-models" placeholder="llama3.2"></label>
           <datalist id="ollama-models"></datalist>
+        </div>
+        <div id="openai-settings" class="field-grid" hidden>
+          <label>Base URL <input id="openai-url" type="text" placeholder="https://api.openai.com/v1"></label>
+          <label>API key <input id="openai-key" type="password" autocomplete="off" placeholder="sk-... (blank if none)"></label>
+          <label>Model <input id="openai-model" type="text" list="openai-models" placeholder="gpt-4o-mini"></label>
+          <datalist id="openai-models"></datalist>
         </div>
         <button id="save-ai-settings" class="primary" type="button">Save AI settings</button>
       </section>

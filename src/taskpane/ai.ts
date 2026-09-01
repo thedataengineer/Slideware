@@ -151,6 +151,69 @@ export async function listClaudeModels(apiKey: string): Promise<string[]> {
   }
 }
 
+interface OpenAiChatResponse {
+  choices?: { message?: { content?: string } }[];
+  error?: { message?: string };
+}
+
+async function callOpenAi(settings: AiSettings, request: AiRequest): Promise<string> {
+  let response: Response;
+  try {
+    response = await fetch(`${settings.openaiUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(settings.openaiKey ? { Authorization: `Bearer ${settings.openaiKey}` } : {}),
+      },
+      body: JSON.stringify({
+        model: settings.openaiModel,
+        messages: [
+          { role: "system", content: request.system },
+          ...request.messages.map((message) => ({ role: message.role, content: message.content })),
+        ],
+      }),
+    });
+  } catch {
+    throw new Error(
+      `Could not reach ${settings.openaiUrl}. Check the base URL in the Gen AI tab; the server must allow browser requests (CORS).`
+    );
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error("The provider rejected the API key. Check it in the Gen AI tab.");
+  }
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as OpenAiChatResponse;
+    throw new Error(
+      `Provider error ${response.status}: ${body.error?.message ?? "request failed"}`
+    );
+  }
+
+  const data = (await response.json()) as OpenAiChatResponse;
+  const text = (data.choices?.[0]?.message?.content ?? "").trim();
+  if (!text) {
+    throw new Error("The provider returned no text. Try again or switch models.");
+  }
+  return text;
+}
+
+interface OpenAiModelsResponse {
+  data?: { id?: string }[];
+}
+
+export async function listOpenAiModels(url: string, key: string): Promise<string[]> {
+  try {
+    const response = await fetch(`${url}/models`, {
+      headers: key ? { Authorization: `Bearer ${key}` } : {},
+    });
+    if (!response.ok) return [];
+    const data = (await response.json()) as OpenAiModelsResponse;
+    return (data.data ?? []).map((model) => model.id ?? "").filter((id) => id.length > 0);
+  } catch {
+    return [];
+  }
+}
+
 interface OllamaTagsResponse {
   models?: { name?: string; capabilities?: string[] }[];
 }
@@ -167,7 +230,7 @@ export async function listOllamaModels(url: string): Promise<string[]> {
 
 export async function callAi(request: AiRequest): Promise<string> {
   const settings = loadAiSettings();
-  return settings.provider === "ollama"
-    ? callOllama(settings, request)
-    : callClaude(settings, request);
+  if (settings.provider === "ollama") return callOllama(settings, request);
+  if (settings.provider === "openai") return callOpenAi(settings, request);
+  return callClaude(settings, request);
 }
