@@ -440,7 +440,9 @@ export async function setSelection(shapeIds: string[]): Promise<void> {
         setSelectedShapes?: (ids: string[]) => void;
       };
       if (typeof presentation.setSelectedShapes !== "function") {
-        throw new SmartAlignmentError("Selecting shapes requires PowerPoint API 1.6.");
+        throw new SmartAlignmentError(
+          "PowerPoint loaded a stale Office.js runtime. Quit PowerPoint fully and reopen to refresh it."
+        );
       }
       presentation.setSelectedShapes(shapeIds);
       await context.sync();
