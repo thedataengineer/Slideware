@@ -51,4 +51,4 @@ Pure logic lives in `src/taskpane/features/` and is unit tested. `src/taskpane/p
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Third party attribution is in [NOTICE](NOTICE).

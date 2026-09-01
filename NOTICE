@@ -1,0 +1,7 @@
+Slideware includes portions of the Microsoft Office Add-in TaskPane template,
+which is MIT licensed.
+
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+Files derived from that template include the build configuration, the base
+task pane scaffolding, and the icon and manifest layout.
