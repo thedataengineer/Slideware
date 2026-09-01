@@ -36,6 +36,11 @@ export function loadAiSettings(): AiSettings {
       const legacyKey = localStorage.getItem(LEGACY_API_KEY_STORAGE_KEY);
       if (legacyKey) settings.apiKey = legacyKey;
     }
+    // Office webviews block direct http:// requests from the https:// pane (mixed
+    // content), so the old direct default is migrated to the dev-server proxy path.
+    if (settings.ollamaUrl === "http://localhost:11434") {
+      settings.ollamaUrl = "/ollama";
+    }
     return settings;
   } catch {
     return defaultAiSettings();
@@ -113,7 +118,7 @@ async function callOllama(settings: AiSettings, request: AiRequest): Promise<str
     });
   } catch {
     throw new Error(
-      `Could not reach Ollama at ${settings.ollamaUrl}. Is it running? Start it with "ollama serve", and if the request is blocked set OLLAMA_ORIGINS="*".`
+      `Could not reach Ollama at ${settings.ollamaUrl}. Is it running? Start it with "ollama serve". Use the "/ollama" URL inside PowerPoint; direct http URLs are blocked by the Office webview.`
     );
   }
 

@@ -60,7 +60,7 @@ test("strips a trailing slash from the ollama url", () => {
 test("defaults choose claude with the standard ollama endpoint", () => {
   const defaults = defaultAiSettings();
   assert.equal(defaults.provider, "claude");
-  assert.equal(defaults.ollamaUrl, "http://localhost:11434");
+  assert.equal(defaults.ollamaUrl, "/ollama");
   assert.equal(defaults.ollamaModel, "llama3.2");
   assert.equal(defaults.apiKey, "");
 });

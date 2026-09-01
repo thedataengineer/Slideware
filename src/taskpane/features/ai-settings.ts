@@ -16,7 +16,7 @@ export function defaultAiSettings(): AiSettings {
     provider: "claude",
     apiKey: "",
     claudeModel: "claude-opus-5",
-    ollamaUrl: "http://localhost:11434",
+    ollamaUrl: "/ollama",
     ollamaModel: "llama3.2",
     openaiUrl: "https://api.openai.com/v1",
     openaiKey: "",
