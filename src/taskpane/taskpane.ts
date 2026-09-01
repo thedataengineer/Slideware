@@ -232,7 +232,7 @@ function registerSelectionOp(): void {
         .filter((shape) => ids.includes(shape.id))
         .map((shape) => shape.name)
         .join(", ");
-      return `Matched ${ids.length} shapes (selection needs API 1.6): ${names}`;
+      return `Matched ${ids.length} shapes (selection needs API 1.5): ${names}`;
     },
   });
 }
@@ -637,7 +637,7 @@ function renderAutomations(): void {
 
     const runButton = document.createElement("button");
     runButton.type = "button";
-    runButton.textContent = "Run";
+    runButton.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Run</span>`;
     runButton.addEventListener("click", () => {
       void runTask(async () => {
         for (const step of automation.steps) {
@@ -649,7 +649,8 @@ function renderAutomations(): void {
 
     const deleteButton = document.createElement("button");
     deleteButton.type = "button";
-    deleteButton.textContent = "Delete";
+    deleteButton.className = "danger-btn";
+    deleteButton.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> <span>Delete</span>`;
     deleteButton.addEventListener("click", () => {
       saveAutomations(loadAutomations().filter((entry) => entry.name !== automation.name));
       renderAutomations();
@@ -671,7 +672,7 @@ function bindAutomationControls(): void {
   recordButton.addEventListener("click", () => {
     if (recorder.isRecording()) {
       pendingSteps = recorder.stop();
-      recordButton.textContent = "Record";
+      recordButton.innerHTML = `<span class="rec-dot"></span> <span>Record</span>`;
       recordButton.classList.remove("recording");
       saveButton.disabled = pendingSteps.length === 0;
       showStatus(
@@ -685,7 +686,7 @@ function bindAutomationControls(): void {
     recorder.start();
     pendingSteps = null;
     saveButton.disabled = true;
-    recordButton.textContent = "Stop";
+    recordButton.innerHTML = `<span class="rec-dot"></span> <span>Stop</span>`;
     recordButton.classList.add("recording");
     showStatus("info", "Recording. Run the actions to capture, then press Stop.");
   });
@@ -830,13 +831,15 @@ function bindAiControls(): void {
     button.addEventListener("click", () => {
       void runTask(async () => {
         const target = await selectedTextShape();
-        const prompt = presetPrompt(target.text, button.dataset.preset as string);
+        const preset = (button.dataset.preset as string) || "edit";
+        const prompt = presetPrompt(target.text, preset);
         const result = await callAi({
           system: prompt.system,
           messages: [{ role: "user", content: prompt.user }],
         });
         await replaceShapeText(target.id, result);
-        return `${button.textContent} applied.`;
+        const label = preset.charAt(0).toUpperCase() + preset.slice(1);
+        return `${label} applied.`;
       });
     });
   });

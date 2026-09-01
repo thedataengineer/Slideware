@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8" />
@@ -15,154 +15,326 @@
 
 <body class="ms-Fabric">
   <section id="sideload-msg" class="startup-message">
-    Open Slideware inside PowerPoint to use it.
+    <div class="startup-card">
+      <div class="startup-icon">
+        <svg class="icon icon-lg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <h2>Slideware</h2>
+      <p>Open Slideware inside Microsoft PowerPoint to activate deck superpowers.</p>
+    </div>
   </section>
+
   <main id="app-body" class="app" hidden>
+    <!-- App Header -->
     <header class="app-header">
-      <p class="eyebrow">SLIDEWARE</p>
-      <h1>Slideware</h1>
+      <div class="brand-badge">
+        <span class="brand-icon">
+          <svg viewBox="0 0 24 24" class="icon icon-sparkle"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </span>
+        <div class="brand-titles">
+          <span class="eyebrow">POWERPOINT COMPANION</span>
+          <h1 class="app-title">Slideware</h1>
+        </div>
+      </div>
     </header>
 
-    <div class="smartbar" role="toolbar" aria-label="SmartBar quick actions">
-      <button type="button" data-op="align.left" title="Align left (L)">⇤</button>
-      <button type="button" data-op="align.center" title="Align center (C)">⇹</button>
-      <button type="button" data-op="align.right" title="Align right (R)">⇥</button>
-      <button type="button" data-op="align.top" title="Align top (T)">⤒</button>
-      <button type="button" data-op="align.middle" title="Align middle (M)">⇳</button>
-      <button type="button" data-op="align.bottom" title="Align bottom (B)">⤓</button>
-      <button type="button" data-op="size.width" title="Same width (W)">W</button>
-      <button type="button" data-op="size.height" title="Same height (E)">H</button>
-      <button type="button" data-op="size.both" title="Same size">▣</button>
-      <button type="button" data-op="swap" title="Swap positions (S)">⇆</button>
-    </div>
+    <!-- SmartBar Quick Actions Floating Strip -->
+    <section class="smartbar-container">
+      <div class="smartbar-label">
+        <span>Quick SmartBar</span>
+        <span class="smartbar-hint">1-click layout</span>
+      </div>
+      <div class="smartbar" role="toolbar" aria-label="SmartBar quick actions">
+        <div class="smartbar-group" aria-label="Align tools">
+          <button type="button" class="smartbar-btn" data-op="align.left" title="Align left (L)">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="4" y1="3" x2="4" y2="21"/><rect x="8" y="5" width="12" height="5" rx="1.5"/><rect x="8" y="14" width="8" height="5" rx="1.5"/></svg>
+          </button>
+          <button type="button" class="smartbar-btn" data-op="align.center" title="Align center (C)">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"/><rect x="5" y="5" width="14" height="5" rx="1.5"/><rect x="7" y="14" width="10" height="5" rx="1.5"/></svg>
+          </button>
+          <button type="button" class="smartbar-btn" data-op="align.right" title="Align right (R)">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="20" y1="3" x2="20" y2="21"/><rect x="4" y="5" width="12" height="5" rx="1.5"/><rect x="8" y="14" width="8" height="5" rx="1.5"/></svg>
+          </button>
+          <button type="button" class="smartbar-btn" data-op="align.top" title="Align top (T)">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="4" x2="21" y2="4"/><rect x="5" y="8" width="5" height="12" rx="1.5"/><rect x="14" y="8" width="5" height="8" rx="1.5"/></svg>
+          </button>
+          <button type="button" class="smartbar-btn" data-op="align.middle" title="Align middle (M)">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><rect x="5" y="5" width="5" height="14" rx="1.5"/><rect x="14" y="7" width="5" height="10" rx="1.5"/></svg>
+          </button>
+          <button type="button" class="smartbar-btn" data-op="align.bottom" title="Align bottom (B)">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="20" x2="21" y2="20"/><rect x="5" y="4" width="5" height="12" rx="1.5"/><rect x="14" y="8" width="5" height="8" rx="1.5"/></svg>
+          </button>
+        </div>
+        <div class="smartbar-divider"></div>
+        <div class="smartbar-group" aria-label="Size tools">
+          <button type="button" class="smartbar-btn" data-op="size.width" title="Match width (W)">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="4" x2="3" y2="20"/><line x1="21" y1="4" x2="21" y2="20"/><polyline points="7 9 4 12 7 15"/><polyline points="17 9 20 12 17 15"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
+          </button>
+          <button type="button" class="smartbar-btn" data-op="size.height" title="Match height (E)">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="4" y1="3" x2="20" y2="3"/><line x1="4" y1="21" x2="20" y2="21"/><polyline points="9 7 12 4 15 7"/><polyline points="9 17 12 20 15 17"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          </button>
+          <button type="button" class="smartbar-btn" data-op="size.both" title="Match both width &amp; height">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><rect x="8" y="8" width="8" height="8" rx="1.5"/></svg>
+          </button>
+        </div>
+        <div class="smartbar-divider"></div>
+        <div class="smartbar-group" aria-label="Position tools">
+          <button type="button" class="smartbar-btn" data-op="swap" title="Swap shape positions (S)">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
 
-    <nav class="tabs" role="tablist">
-      <button type="button" role="tab" data-tab="productivity" aria-selected="true">Productivity</button>
-      <button type="button" role="tab" data-tab="branding" aria-selected="false">Branding</button>
-      <button type="button" role="tab" data-tab="genai" aria-selected="false">Gen AI</button>
+    <!-- Main Navigation Tabs -->
+    <nav class="tabs" role="tablist" aria-label="Slideware navigation">
+      <button type="button" role="tab" class="tab-btn" data-tab="productivity" aria-selected="true">
+        <svg class="tab-icon icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Productivity</span>
+      </button>
+      <button type="button" role="tab" class="tab-btn" data-tab="branding" aria-selected="false">
+        <svg class="tab-icon icon" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        <span>Branding</span>
+      </button>
+      <button type="button" role="tab" class="tab-btn" data-tab="genai" aria-selected="false">
+        <svg class="tab-icon icon" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
+        <span>Gen AI</span>
+      </button>
     </nav>
 
-    <div data-panel="productivity">
+    <!-- ==================== TAB 1: PRODUCTIVITY ==================== -->
+    <div data-panel="productivity" class="tab-panel">
+      <!-- Align & Distribute Card -->
       <section class="panel" aria-labelledby="align-heading">
-        <h2 id="align-heading">Align</h2>
-        <div class="button-grid button-grid-3">
-          <button type="button" data-align="left">Left</button>
-          <button type="button" data-align="center">Center</button>
-          <button type="button" data-align="right">Right</button>
-          <button type="button" data-align="top">Top</button>
-          <button type="button" data-align="middle">Middle</button>
-          <button type="button" data-align="bottom">Bottom</button>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><line x1="4" y1="3" x2="4" y2="21"/><rect x="8" y="6" width="10" height="4" rx="1"/><rect x="8" y="14" width="6" height="4" rx="1"/></svg>
+            <h2 id="align-heading">Align &amp; Distribute</h2>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <span class="sub-title">Alignment</span>
+          <div class="button-grid button-grid-3">
+            <button type="button" class="btn-tool" data-align="left" title="Align left (L)">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="4" y1="3" x2="4" y2="21"/><rect x="8" y="5" width="12" height="5" rx="1.5"/><rect x="8" y="14" width="8" height="5" rx="1.5"/></svg>
+              <span>Left</span>
+              <kbd class="key-hint">L</kbd>
+            </button>
+            <button type="button" class="btn-tool" data-align="center" title="Align center (C)">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"/><rect x="5" y="5" width="14" height="5" rx="1.5"/><rect x="7" y="14" width="10" height="5" rx="1.5"/></svg>
+              <span>Center</span>
+              <kbd class="key-hint">C</kbd>
+            </button>
+            <button type="button" class="btn-tool" data-align="right" title="Align right (R)">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="20" y1="3" x2="20" y2="21"/><rect x="4" y="5" width="12" height="5" rx="1.5"/><rect x="8" y="14" width="8" height="5" rx="1.5"/></svg>
+              <span>Right</span>
+              <kbd class="key-hint">R</kbd>
+            </button>
+            <button type="button" class="btn-tool" data-align="top" title="Align top (T)">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="4" x2="21" y2="4"/><rect x="5" y="8" width="5" height="12" rx="1.5"/><rect x="14" y="8" width="5" height="8" rx="1.5"/></svg>
+              <span>Top</span>
+              <kbd class="key-hint">T</kbd>
+            </button>
+            <button type="button" class="btn-tool" data-align="middle" title="Align middle (M)">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><rect x="5" y="5" width="5" height="14" rx="1.5"/><rect x="14" y="7" width="5" height="10" rx="1.5"/></svg>
+              <span>Middle</span>
+              <kbd class="key-hint">M</kbd>
+            </button>
+            <button type="button" class="btn-tool" data-align="bottom" title="Align bottom (B)">
+              <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="20" x2="21" y2="20"/><rect x="5" y="4" width="5" height="12" rx="1.5"/><rect x="14" y="8" width="5" height="8" rx="1.5"/></svg>
+              <span>Bottom</span>
+              <kbd class="key-hint">B</kbd>
+            </button>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <span class="sub-title">Distribution</span>
+          <div class="button-grid button-grid-2">
+            <button type="button" class="btn-tool" data-distribute="horizontal" title="Distribute horizontally (H)">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="4" y="5" width="3" height="14" rx="1"/><rect x="10.5" y="5" width="3" height="14" rx="1"/><rect x="17" y="5" width="3" height="14" rx="1"/><line x1="2" y1="2" x2="2" y2="22"/><line x1="22" y1="2" x2="22" y2="22"/></svg>
+              <span>Horizontal</span>
+              <kbd class="key-hint">H</kbd>
+            </button>
+            <button type="button" class="btn-tool" data-distribute="vertical" title="Distribute vertically (V)">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="3" rx="1"/><rect x="5" y="10.5" width="14" height="3" rx="1"/><rect x="5" y="17" width="14" height="3" rx="1"/><line x1="2" y1="2" x2="22" y2="2"/><line x1="2" y1="22" x2="22" y2="22"/></svg>
+              <span>Vertical</span>
+              <kbd class="key-hint">V</kbd>
+            </button>
+          </div>
         </div>
       </section>
 
-      <section class="panel" aria-labelledby="distribute-heading">
-        <h2 id="distribute-heading">Distribute</h2>
-        <div class="button-grid button-grid-2">
-          <button type="button" data-distribute="horizontal">Horizontal</button>
-          <button type="button" data-distribute="vertical">Vertical</button>
+      <!-- Advanced Arrange (Matrix & Circle) -->
+      <section class="panel" aria-labelledby="arrange-layouts-heading">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            <h2 id="arrange-layouts-heading">Layout Patterns</h2>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <div class="sub-title-row">
+            <span class="sub-title">Grid Matrix</span>
+          </div>
+          <div class="field-grid field-grid-3">
+            <label>Cols <input id="matrix-columns" type="number" min="1" step="1" value="3"></label>
+            <label>Col gap <input id="matrix-column-gap" type="number" step="1" value="16"></label>
+            <label>Row gap <input id="matrix-row-gap" type="number" step="1" value="16"></label>
+          </div>
+          <button id="apply-matrix" class="primary btn-with-icon" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            <span>Arrange matrix</span>
+          </button>
+        </div>
+
+        <div class="sub-section">
+          <div class="sub-title-row">
+            <span class="sub-title">Radial Circle</span>
+          </div>
+          <div class="field-grid field-grid-3">
+            <label>Radius <input id="circle-radius" type="number" min="1" step="1" value="120"></label>
+            <label>Angle <input id="circle-angle" type="number" step="1" value="-90"></label>
+            <label>Direction
+              <select id="circle-direction">
+                <option value="clockwise">CW</option>
+                <option value="counterclockwise">CCW</option>
+              </select>
+            </label>
+          </div>
+          <button id="apply-circle" class="primary btn-with-icon" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>
+            <span>Arrange circle</span>
+          </button>
         </div>
       </section>
 
-      <section class="panel" aria-labelledby="matrix-heading">
-        <h2 id="matrix-heading">Matrix</h2>
-        <div class="field-grid">
-          <label>Columns <input id="matrix-columns" type="number" min="1" step="1" value="3"></label>
-          <label>Column gap <input id="matrix-column-gap" type="number" step="1" value="16"></label>
-          <label>Row gap <input id="matrix-row-gap" type="number" step="1" value="16"></label>
-        </div>
-        <button id="apply-matrix" class="primary" type="button">Arrange matrix</button>
-      </section>
-
-      <section class="panel" aria-labelledby="circle-heading">
-        <h2 id="circle-heading">Circle</h2>
-        <div class="field-grid">
-          <label>Radius <input id="circle-radius" type="number" min="1" step="1" value="120"></label>
-          <label>Start angle <input id="circle-angle" type="number" step="1" value="-90"></label>
-          <label>Direction
-            <select id="circle-direction">
-              <option value="clockwise">Clockwise</option>
-              <option value="counterclockwise">Counterclockwise</option>
-            </select>
-          </label>
-        </div>
-        <button id="apply-circle" class="primary" type="button">Arrange circle</button>
-      </section>
-
+      <!-- Text & Box Tools -->
       <section class="panel" aria-labelledby="textboxes-heading">
-        <h2 id="textboxes-heading">Split &amp; Merge</h2>
-        <p class="hint">Split one text box into a box per line, or merge several into one. Merge order follows the order you clicked the shapes.</p>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            <h2 id="textboxes-heading">Text &amp; Box Tools</h2>
+          </div>
+        </div>
+        <p class="hint">Split into lines, merge ordered shapes, or auto-fit text and frames.</p>
         <div class="button-grid button-grid-2">
-          <button id="split-textbox" type="button">Split text box</button>
-          <button id="merge-textboxes" type="button">Merge text boxes</button>
+          <button id="split-textbox" class="btn-tool" type="button" title="Split multi-line text box into individual lines">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="3 3"/><line x1="3" y1="17" x2="21" y2="17"/><path d="M12 3v4M12 17v4"/></svg>
+            <span>Split text box</span>
+          </button>
+          <button id="merge-textboxes" class="btn-tool" type="button" title="Merge selected boxes into single frame">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 12h8M8 15h5"/></svg>
+            <span>Merge text boxes</span>
+          </button>
+          <button id="fit-text" class="btn-tool" type="button" title="Shrink text until it fits its box">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 3"/><path d="M8 12h8M12 8v8"/></svg>
+            <span>Fit text to box</span>
+          </button>
+          <button id="fit-box" class="btn-tool" type="button" title="Grow the box to fit its text">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 10h10M7 14h6"/></svg>
+            <span>Fit box to text</span>
+          </button>
         </div>
       </section>
 
+      <!-- Smart Selection -->
       <section class="panel" aria-labelledby="selection-heading">
-        <h2 id="selection-heading">Smart Selection</h2>
-        <p class="hint">Select one anchor shape, pick criteria, then select matches on the slide.</p>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><path d="M3 3l7 18 3-7 7-3L3 3z"/></svg>
+            <h2 id="selection-heading">Smart Selection</h2>
+          </div>
+        </div>
+        <p class="hint">Select an anchor shape, choose criteria, then find all matches on the slide.</p>
         <div class="check-grid">
-          <label><input id="sel-type" type="checkbox" checked> Same shape type</label>
-          <label><input id="sel-fill" type="checkbox"> Same fill (background) color</label>
-          <label><input id="sel-size" type="checkbox"> Same size</label>
-          <label><input id="sel-font" type="checkbox"> Same font family</label>
-          <label><input id="sel-fontcolor" type="checkbox"> Same font (foreground) color</label>
-          <label><input id="sel-fontsize" type="checkbox"> Same font size</label>
+          <label class="custom-check"><input id="sel-type" type="checkbox" checked> <span>Same shape type</span></label>
+          <label class="custom-check"><input id="sel-fill" type="checkbox"> <span>Same fill color</span></label>
+          <label class="custom-check"><input id="sel-size" type="checkbox"> <span>Same size</span></label>
+          <label class="custom-check"><input id="sel-font" type="checkbox"> <span>Same font family</span></label>
+          <label class="custom-check"><input id="sel-fontcolor" type="checkbox"> <span>Same font color</span></label>
+          <label class="custom-check"><input id="sel-fontsize" type="checkbox"> <span>Same font size</span></label>
         </div>
-        <button id="smart-select" class="primary" type="button">Select matching shapes</button>
+        <button id="smart-select" class="primary btn-with-icon" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><circle cx="11" cy="11" r="3"/></svg>
+          <span>Select matching shapes</span>
+        </button>
       </section>
 
-      <section class="panel" aria-labelledby="ai-edit-heading">
-        <h2 id="ai-edit-heading">AI Editing</h2>
-        <p class="hint">Rewrites the text of the selected shape. Uses the AI provider set in the Gen AI tab.</p>
-        <div class="button-grid button-grid-2">
-          <button type="button" data-preset="proofread">Proofread</button>
-          <button type="button" data-preset="shorten">Shorten</button>
-          <button type="button" data-preset="expand">Expand</button>
-          <button type="button" data-preset="clarify">Clarify</button>
-        </div>
-      </section>
-
+      <!-- Deck QA & Structure -->
       <section class="panel" aria-labelledby="checker-heading">
-        <h2 id="checker-heading">Checker</h2>
-        <button id="run-checker" class="primary" type="button">Run deck checker</button>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <h2 id="checker-heading">Deck QA &amp; Agenda</h2>
+          </div>
+        </div>
+        <div class="button-grid button-grid-2">
+          <button id="run-checker" class="primary btn-with-icon" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            <span>Run deck checker</span>
+          </button>
+          <button id="insert-agenda" class="btn-tool btn-secondary" type="button" title="Builds an agenda from slide titles">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>Insert agenda</span>
+          </button>
+        </div>
         <ul id="checker-results" class="result-list"></ul>
       </section>
 
-      <section class="panel" aria-labelledby="agenda-heading">
-        <h2 id="agenda-heading">Agenda Maker</h2>
-        <p class="hint">Builds an agenda from slide titles and inserts it on the current slide.</p>
-        <button id="insert-agenda" class="primary" type="button">Insert agenda</button>
-      </section>
-
+      <!-- Keyboard Shortcuts Reference -->
       <section class="panel" aria-labelledby="shortcuts-heading">
-        <h2 id="shortcuts-heading">Shortcuts</h2>
-        <p class="hint">Active while the task pane has focus.</p>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6.01" y2="8"/><line x1="10" y1="8" x2="10.01" y2="8"/><line x1="14" y1="8" x2="14.01" y2="8"/><line x1="18" y1="8" x2="18.01" y2="8"/><line x1="6" y1="12" x2="6.01" y2="12"/><line x1="18" y1="12" x2="18.01" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
+            <h2 id="shortcuts-heading">Keyboard Shortcuts</h2>
+          </div>
+        </div>
         <ul class="shortcut-list">
-          <li><kbd>L</kbd> <kbd>C</kbd> <kbd>R</kbd> align left / center / right</li>
-          <li><kbd>T</kbd> <kbd>M</kbd> <kbd>B</kbd> align top / middle / bottom</li>
-          <li><kbd>H</kbd> <kbd>V</kbd> distribute horizontal / vertical</li>
-          <li><kbd>W</kbd> <kbd>E</kbd> same width / height</li>
-          <li><kbd>S</kbd> swap positions</li>
+          <li><span class="keys"><kbd>L</kbd> <kbd>C</kbd> <kbd>R</kbd></span> <span class="desc">align left / center / right</span></li>
+          <li><span class="keys"><kbd>T</kbd> <kbd>M</kbd> <kbd>B</kbd></span> <span class="desc">align top / middle / bottom</span></li>
+          <li><span class="keys"><kbd>H</kbd> <kbd>V</kbd></span> <span class="desc">distribute horizontal / vertical</span></li>
+          <li><span class="keys"><kbd>W</kbd> <kbd>E</kbd></span> <span class="desc">match width / height</span></li>
+          <li><span class="keys"><kbd>S</kbd></span> <span class="desc">swap positions</span></li>
         </ul>
       </section>
     </div>
 
-    <div data-panel="branding" hidden>
+    <!-- ==================== TAB 2: BRANDING ==================== -->
+    <div data-panel="branding" class="tab-panel" hidden>
+      <!-- Brand Theme & Fonts -->
       <section class="panel" aria-labelledby="fonts-heading">
-        <h2 id="fonts-heading">Fonts &amp; Colors</h2>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/></svg>
+            <h2 id="fonts-heading">Brand Identity &amp; Colors</h2>
+          </div>
+        </div>
+
         <div class="field-grid">
           <label>Heading font <input id="brand-heading-font" type="text" value="Segoe UI"></label>
           <label>Body font <input id="brand-body-font" type="text" value="Segoe UI"></label>
         </div>
-        <div class="color-grid">
-          <input id="brand-color-0" type="color" value="#20262e" aria-label="Brand color 1">
-          <input id="brand-color-1" type="color" value="#0f6cbd" aria-label="Brand color 2">
-          <input id="brand-color-2" type="color" value="#0b6a3c" aria-label="Brand color 3">
-          <input id="brand-color-3" type="color" value="#b4009e" aria-label="Brand color 4">
-          <input id="brand-color-4" type="color" value="#ffb900" aria-label="Brand color 5">
-          <input id="brand-color-5" type="color" value="#f5f7f8" aria-label="Brand color 6">
+
+        <div class="color-palette-wrap">
+          <span class="sub-title">Brand Color Palette</span>
+          <div class="color-grid">
+            <input id="brand-color-0" type="color" value="#20262e" aria-label="Brand color 1">
+            <input id="brand-color-1" type="color" value="#0f6cbd" aria-label="Brand color 2">
+            <input id="brand-color-2" type="color" value="#0b6a3c" aria-label="Brand color 3">
+            <input id="brand-color-3" type="color" value="#b4009e" aria-label="Brand color 4">
+            <input id="brand-color-4" type="color" value="#ffb900" aria-label="Brand color 5">
+            <input id="brand-color-5" type="color" value="#f5f7f8" aria-label="Brand color 6">
+          </div>
         </div>
-        <button id="save-brand" class="primary" type="button">Save brand</button>
+
+        <button id="save-brand" class="primary btn-with-icon" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span>Save brand preset</span>
+        </button>
+
         <div class="swatch-row">
           <div id="swatches" class="swatches"></div>
           <label class="mode-label">Apply as
@@ -174,103 +346,191 @@
         </div>
       </section>
 
+      <!-- Brand Automation -->
       <section class="panel" aria-labelledby="brand-auto-heading">
-        <h2 id="brand-auto-heading">Branding Automation</h2>
-        <div class="button-grid button-grid-1">
-          <button id="apply-brand-selection" type="button">Apply brand to selection</button>
-          <button id="apply-brand-deck" type="button">Fix fonts across deck</button>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"/></svg>
+            <h2 id="brand-auto-heading">Brand Application</h2>
+          </div>
+        </div>
+        <div class="button-grid button-grid-2">
+          <button id="apply-brand-selection" class="btn-tool" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12v6.5H10l9.395-9.395a3.875 3.875 0 0 0-1.02-6.48z"/></svg>
+            <span>Apply to selection</span>
+          </button>
+          <button id="apply-brand-deck" class="btn-tool" type="button">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M2 12h20M12 2v20M20 6L4 18M4 6l16 12"/></svg>
+            <span>Fix fonts in deck</span>
+          </button>
         </div>
       </section>
 
+      <!-- Font Replacer Tool -->
       <section class="panel" aria-labelledby="font-tools-heading">
-        <h2 id="font-tools-heading">Font Tools</h2>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><path d="M4 14.5l3-9h2l3 9"/><line x1="5" y1="11.5" x2="11" y2="11.5"/><path d="M16 11l4 4-4 4M20 15h-6"/></svg>
+            <h2 id="font-tools-heading">Deck Font Replacer</h2>
+          </div>
+        </div>
         <div class="field-grid">
           <label>Replace font <input id="font-from" type="text" list="deck-fonts" placeholder="e.g. Calibri"></label>
           <label>With <input id="font-to" type="text" placeholder="e.g. Segoe UI"></label>
           <datalist id="deck-fonts"></datalist>
         </div>
-        <button id="replace-fonts" class="primary" type="button">Replace across deck</button>
-        <div class="button-grid button-grid-2" style="margin-top: 10px;">
-          <button id="fit-text" type="button" title="Shrink text until it fits its box">Fit text to box</button>
-          <button id="fit-box" type="button" title="Grow the box to fit its text">Fit box to text</button>
-        </div>
+        <button id="replace-fonts" class="primary btn-with-icon" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Replace across deck</span>
+        </button>
       </section>
 
+      <!-- Slide Templates -->
       <section class="panel" aria-labelledby="templates-heading">
-        <h2 id="templates-heading">Templates</h2>
-        <p class="hint">Inserts brand-styled blocks on the current slide.</p>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            <h2 id="templates-heading">Slide Templates</h2>
+          </div>
+        </div>
+        <p class="hint">Insert beautifully branded slide structures with one click.</p>
         <div class="button-grid button-grid-2">
-          <button type="button" data-template="title-block">Title block</button>
-          <button type="button" data-template="kpi-row">KPI row</button>
-          <button type="button" data-template="quote-card">Quote card</button>
-          <button type="button" data-template="section-divider">Section divider</button>
+          <button type="button" class="btn-card" data-template="title-block">
+            <div class="card-icon-wrap">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="13" y2="13"/></svg>
+            </div>
+            <div class="card-body">
+              <span class="card-title">Title block</span>
+              <span class="card-desc">Hero banner &amp; subtitle</span>
+            </div>
+          </button>
+          <button type="button" class="btn-card" data-template="kpi-row">
+            <div class="card-icon-wrap">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="16" rx="1"/><rect x="16" y="4" width="5" height="16" rx="1"/></svg>
+            </div>
+            <div class="card-body">
+              <span class="card-title">KPI row</span>
+              <span class="card-desc">3 key metric cards</span>
+            </div>
+          </button>
+          <button type="button" class="btn-card" data-template="quote-card">
+            <div class="card-icon-wrap">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2H4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2 0 4-1 6-2 8zM15 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2h-4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2 0 4-1 6-2 8z"/></svg>
+            </div>
+            <div class="card-body">
+              <span class="card-title">Quote card</span>
+              <span class="card-desc">Customer testimonial</span>
+            </div>
+          </button>
+          <button type="button" class="btn-card" data-template="section-divider">
+            <div class="card-icon-wrap">
+              <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><rect x="3" y="4" width="18" height="7" rx="1" fill="currentColor" opacity="0.2"/><line x1="6" y1="16" x2="18" y2="16"/></svg>
+            </div>
+            <div class="card-body">
+              <span class="card-title">Section divider</span>
+              <span class="card-desc">Chapter transition</span>
+            </div>
+          </button>
         </div>
       </section>
 
+      <!-- Custom Automations -->
       <section class="panel" aria-labelledby="automation-heading">
-        <h2 id="automation-heading">Custom Automations</h2>
-        <p class="hint">Record a sequence of Slideware actions, then replay it on any selection.</p>
-        <div class="field-grid">
-          <label>Name <input id="automation-name" type="text" placeholder="e.g. Tidy row"></label>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            <h2 id="automation-heading">Macro Automations</h2>
+          </div>
         </div>
-        <div class="button-grid button-grid-2">
-          <button id="record-automation" type="button">Record</button>
-          <button id="save-automation" type="button" disabled>Save</button>
+        <p class="hint">Record a series of Slideware actions, then replay on any selection.</p>
+        <div class="field-grid field-grid-1">
+          <label>Automation name <input id="automation-name" type="text" placeholder="e.g. Tidy 3-Column Block"></label>
+        </div>
+        <div class="button-grid button-grid-2" style="margin-top: 8px;">
+          <button id="record-automation" class="btn-tool btn-record" type="button">
+            <span class="rec-dot"></span>
+            <span>Record</span>
+          </button>
+          <button id="save-automation" class="btn-tool" type="button" disabled>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span>Save</span>
+          </button>
         </div>
         <ul id="automation-list" class="result-list"></ul>
       </section>
     </div>
 
-    <div data-panel="genai" hidden>
-      <section class="panel" aria-labelledby="ai-provider-heading">
-        <h2 id="ai-provider-heading">AI provider</h2>
-        <p class="hint">Settings stay in this browser profile. Powers every AI feature in the add-in.</p>
-        <div class="field-grid field-grid-1">
-          <label>Provider
-            <select id="ai-provider">
-              <option value="claude">Claude API</option>
-              <option value="ollama">Ollama (local)</option>
-              <option value="openai">OpenAI-compatible API</option>
-            </select>
-          </label>
+    <!-- ==================== TAB 3: GEN AI ==================== -->
+    <div data-panel="genai" class="tab-panel" hidden>
+      <!-- Instant 1-Click AI Actions -->
+      <section class="panel" aria-labelledby="ai-quick-heading">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <h2 id="ai-quick-heading">1-Click AI Text Rewrites</h2>
+          </div>
         </div>
-        <div id="claude-settings" class="field-grid">
-          <label>API key <input id="api-key" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
-          <label>Model <input id="claude-model" type="text" list="claude-models" placeholder="claude-opus-5"></label>
-          <datalist id="claude-models"></datalist>
+        <p class="hint">Rewrites the text of the selected shape using your configured AI engine.</p>
+        <div class="button-grid button-grid-2">
+          <button type="button" class="btn-tool btn-ai" data-preset="proofread" title="Fix grammar, spelling, and polish tone">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Proofread</span>
+          </button>
+          <button type="button" class="btn-tool btn-ai" data-preset="shorten" title="Make concise and punchy">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="16 14 19 11 16 8"/></svg>
+            <span>Shorten</span>
+          </button>
+          <button type="button" class="btn-tool btn-ai" data-preset="expand" title="Elaborate with supporting detail">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="4" y1="6" x2="14" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="18" y2="18"/><polyline points="18 4 21 7 18 10"/></svg>
+            <span>Expand</span>
+          </button>
+          <button type="button" class="btn-tool btn-ai" data-preset="clarify" title="Restructure for executive clarity">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <span>Clarify</span>
+          </button>
         </div>
-        <div id="ollama-settings" class="field-grid" hidden>
-          <label>Server URL <input id="ollama-url" type="text" placeholder="/ollama"></label>
-          <label>Model <input id="ollama-model" type="text" list="ollama-models" placeholder="llama3.2"></label>
-          <datalist id="ollama-models"></datalist>
-        </div>
-        <div id="openai-settings" class="field-grid" hidden>
-          <label>Base URL <input id="openai-url" type="text" placeholder="https://api.openai.com/v1"></label>
-          <label>API key <input id="openai-key" type="password" autocomplete="off" placeholder="sk-... (blank if none)"></label>
-          <label>Model <input id="openai-model" type="text" list="openai-models" placeholder="gpt-4o-mini"></label>
-          <datalist id="openai-models"></datalist>
-        </div>
-        <button id="save-ai-settings" class="primary" type="button">Save AI settings</button>
       </section>
 
+      <!-- Custom AI Prompt Edit -->
       <section class="panel" aria-labelledby="genai-edit-heading">
-        <h2 id="genai-edit-heading">Edit</h2>
-        <p class="hint">Rewrites the selected shape's text with your instruction.</p>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <h2 id="genai-edit-heading">Prompted Text Edit</h2>
+          </div>
+        </div>
         <textarea id="edit-instruction" rows="2" placeholder="e.g. Make this sound confident and half as long"></textarea>
-        <button id="run-edit" class="primary" type="button">Apply edit</button>
+        <button id="run-edit" class="primary btn-with-icon" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span>Apply edit</span>
+        </button>
       </section>
 
+      <!-- Slide Content Generator -->
       <section class="panel" aria-labelledby="create-heading">
-        <h2 id="create-heading">Create</h2>
-        <p class="hint">Generates a title and bullets, inserted on the current slide.</p>
-        <textarea id="create-topic" rows="2" placeholder="e.g. Q3 revenue summary for the exec team"></textarea>
-        <button id="run-create" class="primary" type="button">Create slide content</button>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <h2 id="create-heading">Generate Slide Content</h2>
+          </div>
+        </div>
+        <textarea id="create-topic" rows="2" placeholder="e.g. Q3 revenue summary for the executive team"></textarea>
+        <button id="run-create" class="primary btn-with-icon" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>
+          <span>Create slide content</span>
+        </button>
       </section>
 
+      <!-- Multi-Language Translator -->
       <section class="panel" aria-labelledby="translate-heading">
-        <h2 id="translate-heading">Translate</h2>
-        <div class="field-grid">
-          <label>Language
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <h2 id="translate-heading">Translate Selection</h2>
+          </div>
+        </div>
+        <div class="field-grid field-grid-1">
+          <label>Target Language
             <select id="translate-language">
               <option>Spanish</option>
               <option>French</option>
@@ -285,39 +545,112 @@
             </select>
           </label>
         </div>
-        <button id="run-translate" class="primary" type="button">Translate selected text</button>
+        <button id="run-translate" class="primary btn-with-icon" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span>Translate selected text</span>
+        </button>
       </section>
 
+      <!-- Super Search Across Slides -->
       <section class="panel" aria-labelledby="search-heading">
-        <h2 id="search-heading">Super Search</h2>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <h2 id="search-heading">Super Search</h2>
+          </div>
+        </div>
         <div class="search-row">
-          <input id="search-query" type="text" placeholder="Search all slides">
-          <button id="run-search" type="button">Search</button>
+          <div class="input-with-icon">
+            <svg class="input-icon icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="search-query" type="text" placeholder="Search text across all slides...">
+          </div>
+          <button id="run-search" class="btn-tool" type="button">Search</button>
         </div>
         <ul id="search-results" class="result-list"></ul>
       </section>
 
+      <!-- Darwin Deck Co-Pilot -->
       <section class="panel" aria-labelledby="darwin-heading">
-        <h2 id="darwin-heading">Darwin</h2>
-        <p class="hint">Deck assistant. Knows your slide outline; ask for critique or ideas.</p>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <h2 id="darwin-heading">Darwin Deck Assistant</h2>
+          </div>
+          <span class="badge-pill">AI Co-pilot</span>
+        </div>
+        <p class="hint">Knows your deck outline; ask for critique, structural ideas, or speaker notes.</p>
         <div id="darwin-log" class="chat-log" aria-live="polite"></div>
         <div class="search-row">
-          <input id="darwin-input" type="text" placeholder="Ask Darwin about this deck">
-          <button id="darwin-send" type="button">Send</button>
+          <input id="darwin-input" type="text" placeholder="Ask Darwin about this deck...">
+          <button id="darwin-send" class="btn-tool btn-send" type="button" title="Send message">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
         </div>
       </section>
 
+      <!-- AI Provider Configuration -->
+      <section class="panel" aria-labelledby="ai-provider-heading">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <h2 id="ai-provider-heading">AI Provider Engine</h2>
+          </div>
+        </div>
+        <p class="hint">Settings stay locally in your browser. Powers all AI features.</p>
+        <div class="field-grid field-grid-1">
+          <label>Provider
+            <select id="ai-provider">
+              <option value="claude">Claude API (Anthropic)</option>
+              <option value="ollama">Ollama (Local LLM)</option>
+              <option value="openai">OpenAI-compatible API</option>
+            </select>
+          </label>
+        </div>
+        <div id="claude-settings" class="field-grid">
+          <label>API Key <input id="api-key" type="password" autocomplete="off" placeholder="sk-ant-..."></label>
+          <label>Model <input id="claude-model" type="text" list="claude-models" placeholder="claude-3-7-sonnet-20250219"></label>
+          <datalist id="claude-models"></datalist>
+        </div>
+        <div id="ollama-settings" class="field-grid" hidden>
+          <label>Server URL <input id="ollama-url" type="text" placeholder="/ollama"></label>
+          <label>Model <input id="ollama-model" type="text" list="ollama-models" placeholder="llama3.2"></label>
+          <datalist id="ollama-models"></datalist>
+        </div>
+        <div id="openai-settings" class="field-grid" hidden>
+          <label>Base URL <input id="openai-url" type="text" placeholder="https://api.openai.com/v1"></label>
+          <label>API Key <input id="openai-key" type="password" autocomplete="off" placeholder="sk-... (optional)"></label>
+          <label class="full-col">Model <input id="openai-model" type="text" list="openai-models" placeholder="gpt-4o-mini"></label>
+          <datalist id="openai-models"></datalist>
+        </div>
+        <button id="save-ai-settings" class="primary btn-with-icon" type="button">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Save AI settings</span>
+        </button>
+      </section>
+
+      <!-- Claude Desktop MCP Companion Bridge -->
       <section class="panel" aria-labelledby="mcp-heading">
-        <h2 id="mcp-heading">Claude MCP</h2>
-        <p class="hint">Run <code>node mcp-server/server.js</code>, add it to Claude, then connect this pane.</p>
-        <div class="search-row">
-          <button id="mcp-toggle" type="button">Connect</button>
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <svg class="panel-icon icon" viewBox="0 0 24 24"><path d="M12 2v6M9 4v4M15 4v4M6 8h12a2 2 0 0 1 2 2v4a6 6 0 0 1-6 6v2a2 2 0 0 1-4 0v-2a6 6 0 0 1-6-6v-4a2 2 0 0 1 2-2z"/></svg>
+            <h2 id="mcp-heading">Claude Desktop MCP</h2>
+          </div>
           <span id="mcp-status" class="mcp-status">Disconnected</span>
+        </div>
+        <p class="hint">Connect Claude Desktop to control your live PowerPoint deck in real-time.</p>
+        <div class="search-row">
+          <button id="mcp-toggle" class="btn-tool" type="button">Connect</button>
         </div>
       </section>
     </div>
 
-    <p id="status" class="status" role="status" aria-live="polite">Ready.</p>
+    <!-- Persistent Global Status Bar -->
+    <footer class="app-footer">
+      <div class="status-wrap">
+        <div class="status-indicator"></div>
+        <p id="status" class="status" role="status" aria-live="polite">Ready.</p>
+      </div>
+    </footer>
   </main>
 </body>
 
