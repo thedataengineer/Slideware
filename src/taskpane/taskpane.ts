@@ -720,7 +720,8 @@ function bindAiControls(): void {
       const instruction = requiredElement<HTMLInputElement>("edit-instruction").value.trim();
       if (!instruction) throw new Error("Describe the edit first.");
       const target = await selectedTextShape();
-      const prompt = editPrompt(target.text, instruction);
+      const deck = await snapshotDeck();
+      const prompt = editPrompt(target.text, instruction, deckOutline(deck));
       const result = await callAi({
         system: prompt.system,
         messages: [{ role: "user", content: prompt.user }],
@@ -734,7 +735,8 @@ function bindAiControls(): void {
     void runTask(async () => {
       const topic = requiredElement<HTMLInputElement>("create-topic").value.trim();
       if (!topic) throw new Error("Describe the slide first.");
-      const prompt = createPrompt(topic);
+      const deck = await snapshotDeck();
+      const prompt = createPrompt(topic, deckOutline(deck));
       const raw = await callAi({
         system: prompt.system,
         messages: [{ role: "user", content: prompt.user }],

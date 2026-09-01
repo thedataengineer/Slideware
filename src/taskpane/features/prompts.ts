@@ -24,9 +24,26 @@ export function presetPrompt(text: string, preset: string): PromptPair {
   };
 }
 
-export function editPrompt(text: string, instruction: string): PromptPair {
+const MAX_OUTLINE_CHARS = 8000;
+
+function truncateOutline(outline: string): string {
+  return outline.length > MAX_OUTLINE_CHARS
+    ? `${outline.slice(0, MAX_OUTLINE_CHARS)}\n[outline truncated]`
+    : outline;
+}
+
+function withDeckContext(system: string, outline: string | undefined, framing: string): string {
+  if (!outline || outline.trim().length === 0) return system;
+  return `${system}\n\n${framing}\n\nDeck outline:\n${truncateOutline(outline)}`;
+}
+
+export function editPrompt(text: string, instruction: string, outline?: string): PromptPair {
   return {
-    system: SLIDE_TEXT_SYSTEM,
+    system: withDeckContext(
+      SLIDE_TEXT_SYSTEM,
+      outline,
+      "Use the deck outline below as context so the rewrite stays consistent with the rest of the presentation."
+    ),
     user: `Apply this instruction to the slide text: ${instruction}\n\nSlide text:\n${text}`,
   };
 }
@@ -36,10 +53,13 @@ export interface CreatedContent {
   bullets: string[];
 }
 
-export function createPrompt(topic: string): PromptPair {
+export function createPrompt(topic: string, outline?: string): PromptPair {
   return {
-    system:
+    system: withDeckContext(
       'You draft PowerPoint slide content. Respond with strict JSON only, shaped exactly as {"title": string, "bullets": string[]} with 3 to 5 concise bullets. No markdown fences, no commentary.',
+      outline,
+      "Draw on the deck outline below: keep the new slide consistent with the presentation's topic, facts, names, and tone, and reuse its specifics where they fit the request."
+    ),
     user: `Draft slide content for: ${topic}`,
   };
 }
@@ -72,12 +92,6 @@ export function translatePrompt(text: string, language: string): PromptPair {
   };
 }
 
-const MAX_OUTLINE_CHARS = 8000;
-
 export function darwinSystem(outline: string): string {
-  const truncated =
-    outline.length > MAX_OUTLINE_CHARS
-      ? `${outline.slice(0, MAX_OUTLINE_CHARS)}\n[outline truncated]`
-      : outline;
-  return `You are Darwin, a presentation coach inside the Slideware PowerPoint add-in. Give direct, specific advice about this deck: structure, story, clarity, and design. Keep answers short and skimmable.\n\nCurrent deck outline:\n${truncated}`;
+  return `You are Darwin, a presentation coach inside the Slideware PowerPoint add-in. Give direct, specific advice about this deck: structure, story, clarity, and design. Keep answers short and skimmable.\n\nCurrent deck outline:\n${truncateOutline(outline)}`;
 }
