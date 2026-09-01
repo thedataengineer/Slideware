@@ -1,8 +1,10 @@
 import { ShapeBounds } from "./alignment";
+import { loadInBatches } from "./features/batchload";
+import { resolveSelectionTarget } from "./features/selection";
 import { ShapeUpdate } from "./features/smartbar";
 import { DeckSnapshot, SnapshotShape, SnapshotSlide, deriveTitle } from "./features/snapshot";
 
-/* global Office, PowerPoint */
+/* global Office, PowerPoint, console */
 
 export type LayoutComputer = (shapes: ShapeBounds[]) => ShapeUpdate[];
 
@@ -53,11 +55,32 @@ function assertSupported(): void {
   }
 }
 
+interface HostErrorDebugInfo {
+  code?: string;
+  message?: string;
+  errorLocation?: string;
+  statement?: string;
+}
+
+function hostErrorDetail(error: unknown): string {
+  const debugInfo = (error as { debugInfo?: HostErrorDebugInfo } | null)?.debugInfo;
+  if (!debugInfo) return "";
+  const code = debugInfo.code || (error as { code?: string }).code || "";
+  const where = debugInfo.errorLocation || debugInfo.statement || "";
+  return [code, where].filter(Boolean).join(" at ");
+}
+
 function wrapError(error: unknown, fallback: string): Error {
   if (error instanceof SmartAlignmentError) return error;
   if (error instanceof LayoutComputationFailure && error.cause instanceof Error) return error.cause;
   if (error instanceof Error && error.name !== "RichApi.Error") return error;
-  return new SmartAlignmentError(fallback);
+  const detail = hostErrorDetail(error);
+  console.error(
+    "Slideware host error",
+    error,
+    (error as { debugInfo?: HostErrorDebugInfo })?.debugInfo
+  );
+  return new SmartAlignmentError(detail ? `${fallback} (${detail})` : fallback);
 }
 
 export async function applyLayout(compute: LayoutComputer): Promise<number> {
@@ -113,15 +136,36 @@ function queueShapeLoads(shapes: PowerPoint.Shape[]): void {
   shapes.forEach((shape) => shape.load("id,name,type,left,top,width,height"));
 }
 
-function queueDetailLoads(shapes: PowerPoint.Shape[]): LoadedShape[] {
-  return shapes.map((shape) => {
-    const hasTextCapability = TEXT_SHAPE_TYPES.has(String(shape.type));
-    if (hasTextCapability) {
-      shape.textFrame.textRange.load("text");
-      shape.textFrame.textRange.font.load("name,size,color");
-      shape.fill.load("foregroundColor");
-    }
-    return { shape, hasTextCapability };
+function toCandidates(shapes: PowerPoint.Shape[]): LoadedShape[] {
+  return shapes.map((shape) => ({
+    shape,
+    hasTextCapability: TEXT_SHAPE_TYPES.has(String(shape.type)),
+  }));
+}
+
+function queueDetailLoad(candidate: LoadedShape): void {
+  const { shape } = candidate;
+  shape.textFrame.textRange.load("text");
+  shape.textFrame.textRange.font.load("name,size,color");
+  shape.fill.load("foregroundColor");
+}
+
+/**
+ * Shape type alone does not prove a shape supports a text frame: PowerPoint throws
+ * InvalidArgument at Shape.textFrame for picture placeholders and similar shapes, and that
+ * rejects the entire sync. Isolate those shapes so one of them cannot blank a whole deck read.
+ */
+async function loadShapeDetails(
+  context: PowerPoint.RequestContext,
+  candidates: LoadedShape[]
+): Promise<void> {
+  const unsupported = await loadInBatches({
+    items: candidates.filter((candidate) => candidate.hasTextCapability),
+    queue: queueDetailLoad,
+    sync: () => context.sync(),
+  });
+  unsupported.forEach((candidate) => {
+    candidate.hasTextCapability = false;
   });
 }
 
@@ -177,8 +221,10 @@ export async function snapshotDeck(): Promise<DeckSnapshot> {
       slides.items.forEach((slide) => queueShapeLoads(slide.shapes.items));
       await context.sync();
 
-      const loadedBySlide = slides.items.map((slide) => queueDetailLoads(slide.shapes.items));
-      await context.sync();
+      const loadedBySlide = slides.items.map((slide) => toCandidates(slide.shapes.items));
+      const allCandidates: LoadedShape[] = [];
+      loadedBySlide.forEach((candidates) => allCandidates.push(...candidates));
+      await loadShapeDetails(context, allCandidates);
 
       const snapshotSlides: SnapshotSlide[] = slides.items.map((slide, index) => {
         const shapes = loadedBySlide[index].map(toSnapshotShape);
@@ -204,8 +250,8 @@ export async function readSelection(): Promise<SnapshotShape[]> {
       queueShapeLoads(selected.items);
       await context.sync();
 
-      const loaded = queueDetailLoads(selected.items);
-      await context.sync();
+      const loaded = toCandidates(selected.items);
+      await loadShapeDetails(context, loaded);
 
       return loaded.map(toSnapshotShape);
     });
@@ -425,26 +471,44 @@ export async function gotoSlide(slideIndex: number): Promise<void> {
 }
 
 export function canSelectShapes(): boolean {
-  return Office.context.requirements.isSetSupported("PowerPointApi", "1.6");
+  return Office.context.requirements.isSetSupported("PowerPointApi", "1.5");
 }
 
 export async function setSelection(shapeIds: string[]): Promise<void> {
   assertSupported();
-  if (!canSelectShapes()) {
-    throw new SmartAlignmentError("Selecting shapes requires PowerPoint API 1.6.");
-  }
+  if (shapeIds.length === 0) return;
 
   try {
     await PowerPoint.run(async (context) => {
-      const presentation = context.presentation as unknown as {
-        setSelectedShapes?: (ids: string[]) => void;
-      };
-      if (typeof presentation.setSelectedShapes !== "function") {
-        throw new SmartAlignmentError(
-          "PowerPoint loaded a stale Office.js runtime. Quit PowerPoint fully and reopen to refresh it."
-        );
+      const slides = context.presentation.slides;
+      slides.load("items");
+      await context.sync();
+
+      slides.items.forEach((slide) => {
+        slide.load("id");
+        slide.shapes.load("items");
+      });
+      await context.sync();
+
+      slides.items.forEach((slide) => slide.shapes.items.forEach((shape) => shape.load("id")));
+      await context.sync();
+
+      const target = resolveSelectionTarget(
+        slides.items.map((slide) => ({
+          id: slide.id,
+          shapeIds: slide.shapes.items.map((shape) => shape.id),
+        })),
+        shapeIds
+      );
+      if (!target) {
+        throw new SmartAlignmentError("Those shapes are no longer in the presentation.");
       }
-      presentation.setSelectedShapes(shapeIds);
+
+      const slide = slides.items.find((candidate) => candidate.id === target.slideId);
+      if (!slide) {
+        throw new SmartAlignmentError("Those shapes are no longer in the presentation.");
+      }
+      slide.setSelectedShapes(target.shapeIds);
       await context.sync();
     });
   } catch (error) {

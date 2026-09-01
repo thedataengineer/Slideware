@@ -80,3 +80,50 @@ test("matches by font family, font color, and font size", () => {
   );
   assert.deepEqual(matchShapes(all, styledAnchor, { sameFont: true }), ["anchor", "b", "d", "e"]);
 });
+
+const { resolveSelectionTarget } = require("../lib-test/features/selection.js");
+
+const DECK = [
+  { id: "slide-1", shapeIds: ["a", "b", "c"] },
+  { id: "slide-2", shapeIds: ["d", "e"] },
+];
+
+test("targets the slide that owns the requested shapes", () => {
+  assert.deepEqual(resolveSelectionTarget(DECK, ["d", "e"]), {
+    slideId: "slide-2",
+    shapeIds: ["d", "e"],
+  });
+});
+
+test("keeps the requested order of the shape ids", () => {
+  assert.deepEqual(resolveSelectionTarget(DECK, ["c", "a"]), {
+    slideId: "slide-1",
+    shapeIds: ["c", "a"],
+  });
+});
+
+test("drops ids that live on another slide because selection is per slide", () => {
+  assert.deepEqual(resolveSelectionTarget(DECK, ["a", "b", "d"]), {
+    slideId: "slide-1",
+    shapeIds: ["a", "b"],
+  });
+});
+
+test("picks the slide holding the most requested shapes", () => {
+  assert.deepEqual(resolveSelectionTarget(DECK, ["a", "d", "e"]), {
+    slideId: "slide-2",
+    shapeIds: ["d", "e"],
+  });
+});
+
+test("prefers the earlier slide when the counts tie", () => {
+  assert.deepEqual(resolveSelectionTarget(DECK, ["a", "d"]), {
+    slideId: "slide-1",
+    shapeIds: ["a"],
+  });
+});
+
+test("returns undefined when no requested shape is still in the deck", () => {
+  assert.equal(resolveSelectionTarget(DECK, ["gone"]), undefined);
+  assert.equal(resolveSelectionTarget(DECK, []), undefined);
+});
