@@ -1,9 +1,9 @@
 {
-  "name": "office-addin-taskpane",
+  "name": "slideware",
   "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OfficeDev/Office-Addin-TaskPane.git"
+    "url": "https://github.com/thedataengineer/Slideware.git"
   },
   "license": "MIT",
   "config": {
@@ -68,5 +68,6 @@
   "overrides": {
     "adm-zip": "0.6.0",
     "uuid": "11.1.1"
-  }
+  },
+  "description": "PowerPoint task pane add-in for aligning, arranging, branding, searching, and AI-editing decks."
 }
