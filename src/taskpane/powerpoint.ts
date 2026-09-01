@@ -303,6 +303,42 @@ export async function insertShapes(specs: InsertShapeSpec[]): Promise<number> {
   }
 }
 
+export type TextFitMode = "text-to-box" | "box-to-text";
+
+export async function setTextFit(shapeIds: string[], mode: TextFitMode): Promise<number> {
+  assertSupported();
+  if (shapeIds.length === 0) return 0;
+  const setting = mode === "text-to-box" ? "TextToFitShape" : "ShapeToFitText";
+
+  try {
+    return await PowerPoint.run(async (context) => {
+      const targets = new Set(shapeIds);
+      const slides = context.presentation.slides;
+      slides.load("items");
+      await context.sync();
+
+      slides.items.forEach((slide) => slide.shapes.load("items"));
+      await context.sync();
+
+      const allShapes: PowerPoint.Shape[] = [];
+      slides.items.forEach((slide) => allShapes.push(...slide.shapes.items));
+      allShapes.forEach((shape) => shape.load("id,type"));
+      await context.sync();
+
+      let applied = 0;
+      allShapes.forEach((shape) => {
+        if (!targets.has(shape.id) || !TEXT_SHAPE_TYPES.has(String(shape.type))) return;
+        (shape.textFrame as unknown as { autoSizeSetting: string }).autoSizeSetting = setting;
+        applied += 1;
+      });
+      await context.sync();
+      return applied;
+    });
+  } catch (error) {
+    throw wrapError(error, "PowerPoint could not change the text autofit setting.");
+  }
+}
+
 export async function deleteShapes(shapeIds: string[]): Promise<number> {
   assertSupported();
   if (shapeIds.length === 0) return 0;

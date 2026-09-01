@@ -102,8 +102,11 @@
         <p class="hint">Select one anchor shape, pick criteria, then select matches on the slide.</p>
         <div class="check-grid">
           <label><input id="sel-type" type="checkbox" checked> Same shape type</label>
-          <label><input id="sel-fill" type="checkbox"> Same fill color</label>
+          <label><input id="sel-fill" type="checkbox"> Same fill (background) color</label>
           <label><input id="sel-size" type="checkbox"> Same size</label>
+          <label><input id="sel-font" type="checkbox"> Same font family</label>
+          <label><input id="sel-fontcolor" type="checkbox"> Same font (foreground) color</label>
+          <label><input id="sel-fontsize" type="checkbox"> Same font size</label>
         </div>
         <button id="smart-select" class="primary" type="button">Select matching shapes</button>
       </section>
@@ -176,6 +179,20 @@
         <div class="button-grid button-grid-1">
           <button id="apply-brand-selection" type="button">Apply brand to selection</button>
           <button id="apply-brand-deck" type="button">Fix fonts across deck</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="font-tools-heading">
+        <h2 id="font-tools-heading">Font Tools</h2>
+        <div class="field-grid">
+          <label>Replace font <input id="font-from" type="text" list="deck-fonts" placeholder="e.g. Calibri"></label>
+          <label>With <input id="font-to" type="text" placeholder="e.g. Segoe UI"></label>
+          <datalist id="deck-fonts"></datalist>
+        </div>
+        <button id="replace-fonts" class="primary" type="button">Replace across deck</button>
+        <div class="button-grid button-grid-2" style="margin-top: 10px;">
+          <button id="fit-text" type="button" title="Shrink text until it fits its box">Fit text to box</button>
+          <button id="fit-box" type="button" title="Grow the box to fit its text">Fit box to text</button>
         </div>
       </section>
 

@@ -37,6 +37,7 @@ import {
 } from "./features/prompts";
 import { searchDeck } from "./features/search";
 import { mergeTextBoxes, splitTextBox } from "./features/textboxes";
+import { fontReplaceFormats, usedFonts } from "./features/fonts";
 import { parseAiSettings } from "./features/ai-settings";
 import {
   callAi,
@@ -57,6 +58,7 @@ import {
   readSelection,
   replaceShapeText,
   setSelection,
+  setTextFit,
   snapshotDeck,
   writeShapeFormats,
 } from "./powerpoint";
@@ -207,6 +209,9 @@ function registerSelectionOp(): void {
         sameType: params?.sameType === true,
         sameFill: params?.sameFill === true,
         sameSize: params?.sameSize === true,
+        sameFont: params?.sameFont === true,
+        sameFontColor: params?.sameFontColor === true,
+        sameFontSize: params?.sameFontSize === true,
       };
       const selected = await readSelection();
       if (selected.length === 0) throw new Error("Select an anchor shape first.");
@@ -260,6 +265,83 @@ function registerTextBoxOps(): void {
   });
 }
 
+function registerFontOps(): void {
+  registerOp("font.replace", {
+    label: "Replace font across deck",
+    recordable: true,
+    run: async (params) => {
+      const deck = await snapshotDeck();
+      const formats = fontReplaceFormats(
+        deck,
+        String(params?.from ?? ""),
+        String(params?.to ?? "")
+      );
+      const applied = await writeShapeFormats(formats);
+      return `Replaced "${String(params?.from)}" with "${String(params?.to)}" on ${applied} shapes.`;
+    },
+  });
+
+  registerOp("fit.text", {
+    label: "Fit text to box",
+    recordable: true,
+    run: async () => {
+      const selected = await readSelection();
+      if (selected.length === 0) throw new Error("Select at least 1 text box.");
+      const applied = await setTextFit(
+        selected.map((shape) => shape.id),
+        "text-to-box"
+      );
+      return `Text now shrinks to fit in ${applied} boxes.`;
+    },
+  });
+
+  registerOp("fit.box", {
+    label: "Fit box to text",
+    recordable: true,
+    run: async () => {
+      const selected = await readSelection();
+      if (selected.length === 0) throw new Error("Select at least 1 text box.");
+      const applied = await setTextFit(
+        selected.map((shape) => shape.id),
+        "box-to-text"
+      );
+      return `Boxes now grow to fit their text on ${applied} shapes.`;
+    },
+  });
+}
+
+function refreshDeckFonts(): void {
+  snapshotDeck()
+    .then((deck) => {
+      const datalist = requiredElement<HTMLElement>("deck-fonts");
+      datalist.textContent = "";
+      usedFonts(deck).forEach((font) => {
+        const option = document.createElement("option");
+        option.value = font.name;
+        option.label = `${font.name} (${font.count} shapes)`;
+        datalist.appendChild(option);
+      });
+    })
+    .catch(() => undefined);
+}
+
+function bindFontControls(): void {
+  requiredElement<HTMLButtonElement>("replace-fonts").addEventListener("click", () => {
+    void runOp("font.replace", {
+      from: requiredElement<HTMLInputElement>("font-from").value,
+      to: requiredElement<HTMLInputElement>("font-to").value,
+    });
+  });
+  requiredElement<HTMLButtonElement>("fit-text").addEventListener(
+    "click",
+    () => void runOp("fit.text")
+  );
+  requiredElement<HTMLButtonElement>("fit-box").addEventListener(
+    "click",
+    () => void runOp("fit.box")
+  );
+}
+
 function bindTextBoxControls(): void {
   requiredElement<HTMLButtonElement>("split-textbox").addEventListener(
     "click",
@@ -277,6 +359,9 @@ function bindSelectionControls(): void {
       sameType: checkboxValue("sel-type"),
       sameFill: checkboxValue("sel-fill"),
       sameSize: checkboxValue("sel-size"),
+      sameFont: checkboxValue("sel-font"),
+      sameFontColor: checkboxValue("sel-fontcolor"),
+      sameFontSize: checkboxValue("sel-fontsize"),
     });
   });
 }
@@ -937,6 +1022,7 @@ function bindTabs(): void {
       document.querySelectorAll<HTMLElement>("[data-panel]").forEach((panel) => {
         panel.hidden = panel.dataset.panel !== tab.dataset.tab;
       });
+      if (tab.dataset.tab === "branding") refreshDeckFonts();
     });
   });
 }
@@ -1007,10 +1093,12 @@ Office.onReady((info) => {
   registerBrandOps();
   registerTemplateOp();
   registerTextBoxOps();
+  registerFontOps();
   bindTabs();
   bindLayoutControls();
   bindSelectionControls();
   bindTextBoxControls();
+  bindFontControls();
   bindCheckerControls();
   bindBrandControls();
   bindTemplateControls();

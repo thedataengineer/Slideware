@@ -59,3 +59,24 @@ test("intersects combined criteria", () => {
 test("rejects a call with no criteria", () => {
   assert.throws(() => matchShapes([anchor], anchor, {}), /Pick at least one criteria/);
 });
+
+test("matches by font family, font color, and font size", () => {
+  const styledAnchor = shape({
+    id: "anchor",
+    fontName: "Georgia",
+    fontColor: "#112233",
+    fontSize: 20,
+  });
+  const all = [
+    styledAnchor,
+    shape({ id: "b", fontName: "georgia", fontColor: "#112233", fontSize: 20 }),
+    shape({ id: "c", fontName: "Arial", fontColor: "#112233", fontSize: 20 }),
+    shape({ id: "d", fontName: "Georgia", fontColor: "#FF0000", fontSize: 20 }),
+    shape({ id: "e", fontName: "Georgia", fontColor: "#112233", fontSize: 12 }),
+  ];
+  assert.deepEqual(
+    matchShapes(all, styledAnchor, { sameFont: true, sameFontColor: true, sameFontSize: true }),
+    ["anchor", "b"]
+  );
+  assert.deepEqual(matchShapes(all, styledAnchor, { sameFont: true }), ["anchor", "b", "d", "e"]);
+});
