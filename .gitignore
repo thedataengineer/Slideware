@@ -2,4 +2,5 @@ node_modules
 dist
 lib-test
 manifest.local.json
+.addin-id
 .DS_Store

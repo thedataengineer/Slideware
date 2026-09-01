@@ -60,13 +60,19 @@ DEV_SERVER_PORT=4200 npm start
 
 Resolution order: `DEV_SERVER_PORT`, then `config.dev_server_port` in `package.json`, then 3000. An unusable port fails loudly instead of falling back.
 
-## Giving it to someone else
+## Sharing it with your team
 
-Add them to the private repo, then send them this file. They follow the steps above.
+Add each person to the private repo and send them this file. They follow the steps above. Nothing else to prepare.
 
-**Change the add-in id first if you share a tenant.** `manifest.json` carries a fixed GUID. Two people installing it in the same Microsoft 365 tenant compete for one identity, and the second install overwrites the first. Different tenants do not collide. Generate a fresh GUID for the `id` field in their copy.
+**Check tenant policy first. This is the most likely blocker.** Installing the add-in uploads it to the person's Microsoft 365 account, and many corporate tenants disable custom app upload. Where it is disabled the install fails account-side, and no local change works around it. Confirm with whoever administers your tenant before sending this to a group.
 
-**Their tenant must permit custom app upload.** If policy blocks it, the install fails account-side and no amount of local work fixes it.
+**Add-in ids are per person, handled for you.** The first `npm start` generates a unique id, stores it in an untracked `.addin-id`, and writes it into the manifest that gets sideloaded. Repeat installs reuse it rather than piling up duplicates. Nobody edits `manifest.json`, and no two installs share an identity even inside one tenant. To pin a specific id:
+
+```bash
+ADDIN_ID=<uuid> npm start
+```
+
+**Everyone brings their own model access.** Ollama is per machine. Anthropic and OpenAI keys are per person and are stored only on the machine that entered them.
 
 ## Troubleshooting
 
