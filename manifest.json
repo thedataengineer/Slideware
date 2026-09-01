@@ -15,20 +15,18 @@
     },
     "name": {
         "short": "Slideware",
-        "full": "Slideware Smart Alignment"
+        "full": "Slideware PowerPoint Companion"
     },
     "description": {
-        "short": "Align and arrange selected PowerPoint shapes.",
-        "full": "Align, distribute, and arrange selected PowerPoint shapes in matrix or circle layouts."
+        "short": "Align, brand, search, and QA PowerPoint decks.",
+        "full": "Align and arrange shapes, apply brand fonts and colors, split and merge text boxes, search and QA the deck, run macros, and rewrite slide text with AI."
     },
     "icons": {
         "outline": "assets/outline.png",
         "color": "assets/color.png"
     },
     "accentColor": "#230201",
-    "validDomains": [
-        "contoso.com"
-    ],
+    "validDomains": [],
     "authorization": {
         "permissions": {
             "resourceSpecific": [
@@ -108,7 +106,7 @@
                                         {
                                             "id": "msgReadOpenPaneButton",
                                             "type": "button",
-                                            "label": "Smart Alignment",
+                                            "label": "Slideware",
                                             "icons": [
                                                 {
                                                     "size": 16,
@@ -124,8 +122,8 @@
                                                 }
                                             ],
                                             "supertip": {
-                                                "title": "Smart Alignment",
-                                                "description": "Align and arrange selected shapes."
+                                                "title": "Slideware",
+                                                "description": "Open the Slideware task pane for layout, brand, text, search, QA, and AI tools."
                                             },
                                             "actionId": "TaskPaneRuntimeShow"
                                         }
