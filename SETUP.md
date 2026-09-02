@@ -1,6 +1,6 @@
 # Slideware setup
 
-A PowerPoint task pane add-in: align and arrange shapes, apply brand fonts and colors, split and merge text boxes, search and QA the deck, run macros, and rewrite slide text with a local or hosted AI model.
+A PowerPoint task pane add-in: paste a briefing and get a deck built on your own template, align and arrange shapes, apply brand fonts and colors, split and merge text boxes, search and QA the deck, run macros, and rewrite slide text with a local or hosted AI model.
 
 Everything runs from your own machine. There is no hosted build, so each person runs the dev server locally.
 
@@ -47,6 +47,20 @@ Open the task pane, go to **Gen AI**, then **AI Provider Engine**. Three options
 **OpenAI-compatible.** Set the base URL and key. Defaults to `https://api.openai.com/v1`.
 
 Keys are stored by the task pane on the machine that entered them and are sent only to the provider you selected.
+
+## Building a deck from pasted text
+
+**Gen AI** > **Deck from Text**. Paste prose or an outline, press **Analyze text**, accept or adjust the questions, press **Build plan**, edit the plan, then press **Add slides**.
+
+Three things worth knowing before you rely on it:
+
+**It needs a capable model.** The analyze step asks for an array of objects each holding an array of strings, which is the hardest shape in the add-in. Claude and the larger Ollama models handle it. A small local model often cannot, and when it returns nothing usable the panel falls back to a standard set of four questions and says so. The plan step has no such fallback: if the model cannot produce the slide JSON, you get an error telling you to try a stronger model.
+
+**Ollama can truncate your text without saying so.** Slideware caps the paste at 12,000 characters and refuses anything longer rather than silently dropping the tail. Ollama applies its own `num_ctx` limit on top of that, which defaults low on many installs. A long paste can be cut before the model ever sees the end, and nothing in the reply reveals it. If a plan ignores your last few sections, raise `num_ctx` for your model or paste less.
+
+**Slides are appended to the end of the deck.** `slides.add` can only append, and moving them needs PowerPoint API 1.8, above the 1.5 floor this add-in supports. Drag the block into position afterwards.
+
+Speaker notes are written by the model and shown in the plan, but PowerPoint's add-in API has no notes support at any version. Slideware stores them on each slide as a tag, which survives in the file but is not visible in PowerPoint's notes pane.
 
 ## Running on a different port
 

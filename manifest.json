@@ -1,7 +1,7 @@
 {
     "$schema": "https://developer.microsoft.com/json-schemas/teams/vDevPreview/MicrosoftTeams.schema.json",
     "manifestVersion": "devPreview",
-    "version": "1.1.0",
+    "version": "2.0.0",
     "id": "fe737f47-102d-4d29-8a47-50844e10ac76",
     "localizationInfo": {
         "defaultLanguageTag": "en-us",
@@ -18,8 +18,8 @@
         "full": "Slideware PowerPoint Companion"
     },
     "description": {
-        "short": "Align, brand, search, and QA PowerPoint decks.",
-        "full": "Align and arrange shapes, apply brand fonts and colors, split and merge text boxes, search and QA the deck, run macros, and rewrite slide text with AI."
+        "short": "Turn pasted text into a deck, then align, brand, and QA it.",
+        "full": "Paste a briefing and build a deck on your own slide master. Align and arrange shapes, apply brand fonts and colors, split and merge text boxes, search and QA the deck, run macros, and rewrite slide text with AI."
     },
     "icons": {
         "outline": "assets/outline.png",
@@ -123,7 +123,7 @@
                                             ],
                                             "supertip": {
                                                 "title": "Slideware",
-                                                "description": "Open the Slideware task pane for layout, brand, text, search, QA, and AI tools."
+                                                "description": "Open the Slideware task pane to build decks from text and to lay out, brand, search, and QA slides."
                                             },
                                             "actionId": "TaskPaneRuntimeShow"
                                         }

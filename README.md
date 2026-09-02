@@ -1,6 +1,6 @@
 # Slideware
 
-A PowerPoint task pane add-in for people who build decks all day. It aligns and arranges shapes, applies brand fonts and colors, splits and merges text boxes, searches and QA checks the deck, records macros, and rewrites slide text with a local or hosted AI model.
+A PowerPoint task pane add-in for people who build decks all day. Paste a briefing and get a deck built on your own template. Align and arrange shapes, apply brand fonts and colors, split and merge text boxes, search and QA the deck, record macros, and rewrite slide text with a local or hosted AI model.
 
 Runs entirely from your own machine. There is no hosted service, no telemetry, and no account to create.
 
@@ -18,7 +18,9 @@ If you enable an AI provider, slide text is sent to whichever provider you confi
 
 **Branding.** Apply brand fonts and colors across a selection or the whole deck. Replace one font with another everywhere.
 
-**Gen AI.** Rewrite, shorten, or edit slide text with Claude, an OpenAI-compatible endpoint, or a local Ollama model. Generate slide content from a topic, grounded in the deck outline. Translate a selection. Ask a deck assistant about the open presentation.
+**Deck from text.** Paste prose or an outline and get a whole deck. The model reads the text, reports what it found, and asks up to four questions about that specific text with a recommendation already selected, so accepting all of them is one click. It then drafts a slide plan you reorder, retitle, or trim before anything is created. Slides are built on layouts from your deck's own slide master, so a branded template comes out branded with no restyling.
+
+**Gen AI.** Rewrite, shorten, or edit slide text with Claude, an OpenAI-compatible endpoint, or a local Ollama model. Generate a single slide from a topic, grounded in the deck outline. Translate a selection. Ask a deck assistant about the open presentation.
 
 **MCP.** Optionally lets Claude drive the add-in directly. See [mcp-server/README.md](mcp-server/README.md).
 
@@ -48,6 +50,10 @@ npm run build   # production bundle into dist/
 ```
 
 Pure logic lives in `src/taskpane/features/` and is unit tested. `src/taskpane/powerpoint.ts` is the Office.js boundary; it is exercised in PowerPoint rather than in tests, so changes there need a real run before you trust them.
+
+## Changes
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
