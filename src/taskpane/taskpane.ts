@@ -36,6 +36,27 @@ import {
   presetPrompt,
   translatePrompt,
 } from "./features/prompts";
+import {
+  DeckAnalysis,
+  DeckAnswer,
+  DeckQuestion,
+  defaultAnswers,
+  parseDeckAnalysis,
+  setAnswer,
+  withFallbackQuestions,
+} from "./features/deck-interview";
+import {
+  SlideKind,
+  SlidePlan,
+  movePlanSlide,
+  parseSlidePlan,
+  planSummary,
+  removePlanSlide,
+  slideMeta,
+  summarizeResult,
+  updatePlanSlide,
+} from "./features/deck-plan";
+import { analyzePrompt, assertSourceText, planPrompt } from "./features/deck-prompts";
 import { searchDeck } from "./features/search";
 import { mergeTextBoxes, splitTextBox } from "./features/textboxes";
 import { fontReplaceFormats, usedFonts } from "./features/fonts";
@@ -51,6 +72,7 @@ import {
 import { connectBridge, disconnectBridge, isBridgeConnected, onBridgeStatus } from "./bridge";
 import { dispatch, registerOp, setRecordListener } from "./dispatcher";
 import {
+  addSlidesFromPlan,
   applyLayout,
   canSelectShapes,
   deleteShapes,
@@ -66,7 +88,7 @@ import {
 
 /* global localStorage */
 
-/* global document, Office, HTMLElement, HTMLInputElement, HTMLButtonElement, HTMLSelectElement */
+/* global document, Office, HTMLElement, HTMLInputElement, HTMLButtonElement, HTMLSelectElement, HTMLTextAreaElement */
 
 export function requiredElement<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -1088,6 +1110,278 @@ function bindShortcuts(): void {
   });
 }
 
+type DeckStep = "empty" | "analyzed" | "planned";
+
+interface DeckFromTextState {
+  step: DeckStep;
+  /** The exact text that was analyzed, so an edit can be detected. */
+  source: string;
+  analysis: DeckAnalysis | null;
+  answers: DeckAnswer[];
+  plan: SlidePlan | null;
+}
+
+const EMPTY_DECK_STATE: DeckFromTextState = {
+  step: "empty",
+  source: "",
+  analysis: null,
+  answers: [],
+  plan: null,
+};
+
+let deckState: DeckFromTextState = EMPTY_DECK_STATE;
+let editingSlide: number | null = null;
+
+function renderDeckAnalysis(analysis: DeckAnalysis): void {
+  const summary = requiredElement<HTMLElement>("deck-summary");
+  summary.textContent = analysis.summary;
+  summary.hidden = analysis.summary.length === 0;
+
+  const list = clearList("deck-detected");
+  analysis.detected.forEach((item) => addListItem(list, item));
+}
+
+function renderDeckQuestions(questions: DeckQuestion[]): void {
+  const container = requiredElement<HTMLElement>("deck-questions");
+  container.textContent = "";
+
+  questions.forEach((question) => {
+    const label = document.createElement("label");
+    label.textContent = question.question;
+
+    const select = document.createElement("select");
+    select.id = `deck-${question.id}`;
+    // The recommendation is options[0] by parser invariant, so it is selected with no extra work.
+    question.options.forEach((option, index) => {
+      const choice = document.createElement("option");
+      choice.value = option;
+      choice.textContent = index === 0 ? `${option} (recommended)` : option;
+      select.appendChild(choice);
+    });
+    select.addEventListener("change", () => {
+      deckState.answers = setAnswer(deckState.answers, question.id, select.value);
+    });
+
+    label.appendChild(select);
+    container.appendChild(label);
+  });
+}
+
+function planButton(text: string, onClick: () => void, className?: string): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = text;
+  if (className) button.className = className;
+  button.addEventListener("click", onClick);
+  return button;
+}
+
+/** Plan edits are synchronous, so they never go through runTask, which disables the whole pane. */
+function mutatePlan(next: SlidePlan, message: string): void {
+  deckState = { ...deckState, plan: next };
+  editingSlide = null;
+  renderDeckStep();
+  showStatus("success", message);
+}
+
+function planDisplayRow(item: HTMLElement, plan: SlidePlan, index: number): void {
+  const slide = plan.slides[index];
+
+  const title = document.createElement("div");
+  title.textContent = `${index + 1}. ${slide.title}`;
+
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = slideMeta(slide);
+
+  const actions = document.createElement("div");
+  actions.className = "row-actions";
+  actions.append(
+    planButton("Up", () => mutatePlan(movePlanSlide(plan, index, -1), "Moved the slide up.")),
+    planButton("Down", () => mutatePlan(movePlanSlide(plan, index, 1), "Moved the slide down.")),
+    planButton("Edit", () => {
+      editingSlide = index;
+      renderDeckStep();
+    }),
+    planButton(
+      "Remove",
+      () => mutatePlan(removePlanSlide(plan, index), `Removed "${slide.title}".`),
+      "danger-btn"
+    )
+  );
+
+  item.append(title, meta, actions);
+}
+
+function planEditRow(item: HTMLElement, plan: SlidePlan, index: number): void {
+  const slide = plan.slides[index];
+
+  const kind = document.createElement("select");
+  (["title", "section", "bullets"] as SlideKind[]).forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    if (value === slide.kind) option.selected = true;
+    kind.appendChild(option);
+  });
+
+  const title = document.createElement("input");
+  title.type = "text";
+  title.value = slide.title;
+
+  const bullets = document.createElement("textarea");
+  bullets.rows = 4;
+  bullets.value = slide.bullets.join("\n");
+
+  const actions = document.createElement("div");
+  actions.className = "row-actions";
+  actions.append(
+    planButton("Save", () =>
+      mutatePlan(
+        updatePlanSlide(plan, index, {
+          kind: kind.value as SlideKind,
+          title: title.value,
+          bullets: bullets.value.split("\n"),
+        }),
+        "Updated the slide."
+      )
+    ),
+    planButton("Cancel", () => {
+      editingSlide = null;
+      renderDeckStep();
+    })
+  );
+
+  item.append(kind, title, bullets, actions);
+}
+
+function renderDeckPlan(plan: SlidePlan): void {
+  requiredElement<HTMLElement>("deck-plan-summary").textContent = planSummary(plan);
+
+  const list = clearList("deck-plan-list");
+  plan.slides.forEach((_, index) => {
+    const item = document.createElement("li");
+    if (editingSlide === index) planEditRow(item, plan, index);
+    else planDisplayRow(item, plan, index);
+    list.appendChild(item);
+  });
+}
+
+/** Steps are gated by hidden on containers: setBusy re-enables every button on the page. */
+function renderDeckStep(): void {
+  requiredElement<HTMLElement>("deck-analysis").hidden = deckState.step === "empty";
+  requiredElement<HTMLElement>("deck-plan-wrap").hidden = deckState.step !== "planned";
+
+  if (deckState.analysis) {
+    renderDeckAnalysis(deckState.analysis);
+    renderDeckQuestions(deckState.analysis.questions);
+  }
+  if (deckState.plan) renderDeckPlan(deckState.plan);
+}
+
+function resetDeckState(): void {
+  deckState = EMPTY_DECK_STATE;
+  editingSlide = null;
+  renderDeckStep();
+}
+
+function registerDeckOp(): void {
+  registerOp("deck.fromText", {
+    label: "Build deck from text",
+    run: async () => {
+      if (!deckState.plan) throw new Error("Build a plan before adding slides.");
+      const brand = loadBrand();
+      const result = await addSlidesFromPlan(deckState.plan.slides, {
+        slideSize: SLIDE_SIZE,
+        fallbackStyle: {
+          titleFontName: brand.headingFont,
+          titleFontSize: 32,
+          bodyFontName: brand.bodyFont,
+          bodyFontSize: 18,
+          fontColor: brand.colors[0],
+        },
+      });
+      return summarizeResult(result);
+    },
+  });
+}
+
+function bindDeckFromTextControls(): void {
+  const source = requiredElement<HTMLTextAreaElement>("deck-source");
+
+  // The questions were derived from the old text, so a changed paste resets rather than goes stale.
+  source.addEventListener("input", () => {
+    if (deckState.step === "empty") return;
+    if (source.value.trim() === deckState.source) return;
+    resetDeckState();
+    showStatus("info", "Text changed. Analyze it again.");
+  });
+
+  requiredElement<HTMLButtonElement>("analyze-deck").addEventListener("click", () => {
+    void runTask(async () => {
+      const text = assertSourceText(source.value);
+      const prompt = analyzePrompt(text);
+      const raw = await callAi({
+        system: prompt.system,
+        messages: [{ role: "user", content: prompt.user }],
+        maxTokens: 1500,
+      });
+
+      const parsed = parseDeckAnalysis(raw);
+      const analysis = withFallbackQuestions(parsed);
+      deckState = {
+        step: "analyzed",
+        source: text,
+        analysis,
+        answers: defaultAnswers(analysis.questions),
+        plan: null,
+      };
+      editingSlide = null;
+      renderDeckStep();
+
+      return parsed.questions.length === 0
+        ? "Analyzed the text, but the model returned no usable questions. Using the standard set."
+        : `Analyzed the text. ${analysis.questions.length} questions, answers pre-filled.`;
+    });
+  });
+
+  requiredElement<HTMLButtonElement>("plan-deck").addEventListener("click", () => {
+    void runTask(async () => {
+      if (deckState.step === "empty") throw new Error("Analyze the text first.");
+      const deck = await snapshotDeck();
+      const prompt = planPrompt(deckState.source, deckState.answers, deckOutline(deck));
+      const raw = await callAi({
+        system: prompt.system,
+        messages: [{ role: "user", content: prompt.user }],
+        maxTokens: 4000,
+      });
+
+      const plan = parseSlidePlan(raw);
+      deckState = { ...deckState, step: "planned", plan };
+      editingSlide = null;
+      renderDeckStep();
+      return `Plan ready: ${planSummary(plan)}.`;
+    });
+  });
+
+  requiredElement<HTMLButtonElement>("build-deck").addEventListener("click", () => {
+    void runOp("deck.fromText");
+  });
+
+  requiredElement<HTMLButtonElement>("replan-deck").addEventListener("click", () => {
+    deckState = { ...deckState, step: "analyzed", plan: null };
+    editingSlide = null;
+    renderDeckStep();
+    showStatus("info", "Adjust the answers, then build the plan again.");
+  });
+
+  requiredElement<HTMLButtonElement>("reset-deck").addEventListener("click", () => {
+    source.value = "";
+    resetDeckState();
+    showStatus("info", "Cleared. Paste new text to start again.");
+  });
+}
+
 Office.onReady((info) => {
   if (info.host !== Office.HostType.PowerPoint) return;
   requiredElement<HTMLElement>("sideload-msg").hidden = true;
@@ -1098,6 +1392,7 @@ Office.onReady((info) => {
   registerTemplateOp();
   registerTextBoxOps();
   registerFontOps();
+  registerDeckOp();
   bindTabs();
   bindLayoutControls();
   bindSelectionControls();
@@ -1108,6 +1403,7 @@ Office.onReady((info) => {
   bindTemplateControls();
   bindAutomationControls();
   bindAiControls();
+  bindDeckFromTextControls();
   bindSearchControls();
   bindDarwinControls();
   bindMcpControls();
