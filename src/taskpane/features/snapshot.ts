@@ -31,12 +31,18 @@ export interface TitleCandidate {
   text: string;
 }
 
+const TITLE_NAME = /(^|[^a-z])title([^a-z]|$)/i;
+const SUBTITLE_NAME = /sub-?title/i;
+
 export function deriveTitle(shapes: TitleCandidate[]): string | undefined {
   const withText = shapes.filter((shape) => shape.text.trim().length > 0);
   if (withText.length === 0) return undefined;
 
-  const named = withText.find((shape) => shape.name.toLowerCase().includes("title"));
-  if (named) return named.text.trim();
+  // "Subtitle" must not satisfy this, and the topmost title wins over document order.
+  const titled = withText
+    .filter((shape) => TITLE_NAME.test(shape.name) && !SUBTITLE_NAME.test(shape.name))
+    .sort((a, b) => a.top - b.top);
+  if (titled.length > 0) return titled[0].text.trim();
 
   const topmost = withText.reduce((best, shape) => (shape.top < best.top ? shape : best));
   return topmost.text.trim();

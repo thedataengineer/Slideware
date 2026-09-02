@@ -20,6 +20,7 @@ import {
   serializeBrand,
 } from "./features/branding";
 import { templateShapes } from "./features/templates";
+import { DEFAULT_SLIDE_SIZE } from "./features/slide-size";
 import {
   Automation,
   Recorder,
@@ -580,7 +581,7 @@ function bindBrandControls(): void {
   );
 }
 
-const SLIDE_SIZE = { width: 960, height: 540 };
+const SLIDE_SIZE = DEFAULT_SLIDE_SIZE;
 const AUTOMATIONS_STORAGE_KEY = "slideware.automations";
 const recorder = new Recorder();
 let pendingSteps: ReturnType<Recorder["stop"]> | null = null;

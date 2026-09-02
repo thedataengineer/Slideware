@@ -32,7 +32,11 @@ function truncateOutline(outline: string): string {
     : outline;
 }
 
-function withDeckContext(system: string, outline: string | undefined, framing: string): string {
+export function withDeckContext(
+  system: string,
+  outline: string | undefined,
+  framing: string
+): string {
   if (!outline || outline.trim().length === 0) return system;
   return `${system}\n\n${framing}\n\nDeck outline:\n${truncateOutline(outline)}`;
 }

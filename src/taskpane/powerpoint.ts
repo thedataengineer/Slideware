@@ -1,5 +1,15 @@
 import { ShapeBounds } from "./alignment";
 import { loadInBatches } from "./features/batchload";
+import {
+  AddSlidesResult,
+  PlannedSlide,
+  SlideFailure,
+  bodyTextFor,
+  validatePlan,
+} from "./features/deck-plan";
+import { ShapeDescriptor, fallbackRects, pickPlaceholders } from "./features/placeholders";
+import { DEFAULT_SLIDE_SIZE, SlideSize } from "./features/slide-size";
+import { LayoutCatalog, LayoutRef, chooseLayouts } from "./features/slidelayout";
 import { resolveSelectionTarget } from "./features/selection";
 import { ShapeUpdate } from "./features/smartbar";
 import { DeckSnapshot, SnapshotShape, SnapshotSlide, deriveTitle } from "./features/snapshot";
@@ -513,5 +523,387 @@ export async function setSelection(shapeIds: string[]): Promise<void> {
     });
   } catch (error) {
     throw wrapError(error, "PowerPoint could not select the shapes.");
+  }
+}
+
+export interface FallbackTextStyle {
+  titleFontName?: string;
+  titleFontSize?: number;
+  bodyFontName?: string;
+  bodyFontSize?: number;
+  fontColor?: string;
+}
+
+export interface AddSlidesOptions {
+  slideSize?: SlideSize;
+  fallbackStyle?: FallbackTextStyle;
+  stashNotesAsTags?: boolean;
+  selectFirstNewSlide?: boolean;
+}
+
+interface CatalogRead {
+  catalog: LayoutCatalog;
+  layoutById: Map<string, PowerPoint.SlideLayout>;
+  knownSlideIds: Set<string>;
+  slideCount: number;
+}
+
+function supports(version: string): boolean {
+  return Office.context.requirements.isSetSupported("PowerPointApi", version);
+}
+
+/**
+ * Reads every master and its layouts. Three syncs, following the load("items") then per-item
+ * load pattern the rest of this file uses rather than nested load paths.
+ */
+async function readCatalog(context: PowerPoint.RequestContext): Promise<CatalogRead> {
+  const masters = context.presentation.slideMasters;
+  const slides = context.presentation.slides;
+  masters.load("items");
+  slides.load("items");
+  await context.sync();
+
+  masters.items.forEach((master) => {
+    master.load("id,name");
+    master.layouts.load("items");
+  });
+  slides.items.forEach((slide) => slide.load("id"));
+  const lastSlide = slides.items[slides.items.length - 1];
+  if (lastSlide) lastSlide.slideMaster.load("id");
+  await context.sync();
+
+  const layoutProxies: PowerPoint.SlideLayout[] = [];
+  masters.items.forEach((master) => {
+    master.layouts.items.forEach((layout) => {
+      layout.load("id,name");
+      layoutProxies.push(layout);
+    });
+  });
+  await context.sync();
+
+  // Layout type is exact and locale-proof, but only exists from 1.8. Its absence is not an error.
+  const typed = new Map<string, string>();
+  if (supports("1.8")) {
+    try {
+      const typedProxies = layoutProxies.map((layout) => {
+        layout.load("type");
+        return layout;
+      });
+      await context.sync();
+      typedProxies.forEach((layout) => typed.set(layout.id, String(layout.type)));
+    } catch {
+      typed.clear();
+    }
+  }
+
+  const layouts: LayoutRef[] = [];
+  const layoutById = new Map<string, PowerPoint.SlideLayout>();
+  masters.items.forEach((master, masterIndex) => {
+    master.layouts.items.forEach((layout, layoutIndex) => {
+      layouts.push({
+        masterId: master.id,
+        masterName: master.name,
+        masterIndex,
+        layoutId: layout.id,
+        layoutName: layout.name,
+        layoutIndex,
+        layoutType: typed.get(layout.id),
+      });
+      layoutById.set(layout.id, layout);
+    });
+  });
+
+  return {
+    catalog: { layouts, preferredMasterId: lastSlide ? lastSlide.slideMaster.id : undefined },
+    layoutById,
+    knownSlideIds: new Set(slides.items.map((slide) => slide.id)),
+    slideCount: slides.items.length,
+  };
+}
+
+export async function readLayoutCatalog(): Promise<LayoutCatalog> {
+  assertSupported();
+
+  try {
+    return await PowerPoint.run(async (context) => (await readCatalog(context)).catalog);
+  } catch (error) {
+    throw wrapError(error, "PowerPoint could not read the slide layouts.");
+  }
+}
+
+function toDescriptors(shapes: PowerPoint.Shape[], textCapable: Set<string>): ShapeDescriptor[] {
+  return shapes.map((shape) => ({
+    id: shape.id,
+    name: shape.name,
+    type: String(shape.type),
+    left: shape.left,
+    top: shape.top,
+    width: shape.width,
+    height: shape.height,
+    canHoldText: textCapable.has(shape.id),
+  }));
+}
+
+/** Measures which shapes actually own a text frame, isolating the ones the host refuses. */
+async function probeTextFrames(
+  context: PowerPoint.RequestContext,
+  shapes: PowerPoint.Shape[]
+): Promise<Set<string>> {
+  const candidates = shapes.filter((shape) => TEXT_SHAPE_TYPES.has(String(shape.type)));
+  const refused = await loadInBatches({
+    items: candidates,
+    queue: (shape) => shape.textFrame.load("hasText"),
+    sync: () => context.sync(),
+  });
+  const refusedIds = new Set(refused.map((shape) => shape.id));
+  return new Set(candidates.filter((shape) => !refusedIds.has(shape.id)).map((shape) => shape.id));
+}
+
+interface NewSlide {
+  index: number;
+  planned: PlannedSlide;
+  slide: PowerPoint.Slide;
+  layoutId?: string;
+}
+
+/**
+ * Appends a slide per planned entry using the deck's own master, then fills the layout's title
+ * and body placeholders. One bad slide is reported and skipped rather than aborting the run.
+ */
+export async function addSlidesFromPlan(
+  plan: PlannedSlide[],
+  options: AddSlidesOptions = {}
+): Promise<AddSlidesResult> {
+  assertSupported();
+  const slides = validatePlan(plan);
+  const slideSize = options.slideSize ?? DEFAULT_SLIDE_SIZE;
+  const style = options.fallbackStyle ?? {};
+
+  try {
+    return await PowerPoint.run(async (context) => {
+      const { catalog, layoutById, knownSlideIds, slideCount } = await readCatalog(context);
+      const choices = chooseLayouts(catalog, slides);
+      const failed: SlideFailure[] = [];
+
+      // Fallback geometry comes from the layout itself, so a drawn box lands where text belongs.
+      const usedLayoutIds = Array.from(
+        new Set(choices.map((choice) => choice?.layoutId).filter((id): id is string => Boolean(id)))
+      );
+      const layoutShapes = new Map<string, ShapeDescriptor[]>();
+      if (usedLayoutIds.length > 0) {
+        usedLayoutIds.forEach((id) => layoutById.get(id)?.shapes.load("items"));
+        await context.sync();
+        usedLayoutIds.forEach((id) =>
+          layoutById.get(id)?.shapes.items.forEach((shape) => queueShapeLoads([shape]))
+        );
+        await context.sync();
+        usedLayoutIds.forEach((id) => {
+          const shapes = layoutById.get(id)?.shapes.items ?? [];
+          const ids = new Set(shapes.map((shape) => shape.id));
+          layoutShapes.set(id, toDescriptors(shapes, ids));
+        });
+      }
+
+      // Adds are not idempotent, so they are never batched and never bisected.
+      const created: NewSlide[] = [];
+      for (let index = 0; index < slides.length; index += 1) {
+        const planned = slides[index];
+        const choice = choices[index];
+        try {
+          const addOptions: PowerPoint.AddSlideOptions = {};
+          if (choice) {
+            addOptions.layoutId = choice.layoutId;
+            addOptions.slideMasterId = choice.slideMasterId;
+          }
+          context.presentation.slides.add(addOptions);
+          // add() is not idempotent, so it can never share a batch or be replayed by a bisect.
+          // eslint-disable-next-line office-addins/no-context-sync-in-loop
+          await context.sync();
+        } catch {
+          failed.push({
+            index: index + 1,
+            title: planned.title,
+            reason: "PowerPoint refused the layout for this slide",
+          });
+          continue;
+        }
+
+        const expected = slideCount + created.length;
+        const slide = context.presentation.slides.getItemAt(expected);
+        slide.load("id");
+        // The file's other ops all use load("items") then per-item loads, which is the
+        // pattern proven against real hosts here.
+        // eslint-disable-next-line office-addins/no-navigational-load
+        slide.shapes.load("items");
+        try {
+          // One sync per added slide is the cost of locating a slide add() gives no handle to.
+          // eslint-disable-next-line office-addins/no-context-sync-in-loop
+          await context.sync();
+        } catch {
+          failed.push({
+            index: index + 1,
+            title: planned.title,
+            reason: "PowerPoint could not return the new slide",
+          });
+          continue;
+        }
+
+        if (knownSlideIds.has(slide.id)) {
+          // Never write into a slide we are not certain we created.
+          failed.push({
+            index: index + 1,
+            title: planned.title,
+            reason: "the slide list changed while Slideware was building",
+          });
+          continue;
+        }
+        knownSlideIds.add(slide.id);
+        created.push({ index: index + 1, planned, slide, layoutId: choice?.layoutId });
+      }
+
+      if (created.length === 0) {
+        return {
+          added: 0,
+          failed,
+          blankSlidesLeft: 0,
+          notesSkipped: 0,
+          fallbackTextBoxes: 0,
+        };
+      }
+
+      const allShapes: PowerPoint.Shape[] = [];
+      created.forEach((entry) => allShapes.push(...entry.slide.shapes.items));
+      allShapes.forEach((shape) => queueShapeLoads([shape]));
+      await context.sync();
+
+      const textCapable = await probeTextFrames(context, allShapes);
+
+      interface WritePlan {
+        entry: NewSlide;
+        titleShape?: PowerPoint.Shape;
+        bodyShape?: PowerPoint.Shape;
+        body: ReturnType<typeof bodyTextFor>;
+      }
+
+      const writes: WritePlan[] = created.map((entry) => {
+        const shapes = entry.slide.shapes.items;
+        const pick = pickPlaceholders(toDescriptors(shapes, textCapable));
+        return {
+          entry,
+          titleShape: shapes.find((shape) => shape.id === pick.titleShapeId),
+          bodyShape: shapes.find((shape) => shape.id === pick.bodyShapeId),
+          body: bodyTextFor(entry.planned),
+        };
+      });
+
+      // Text assignments are idempotent, so a failed batch can be bisected safely.
+      const refusedWrites = await loadInBatches({
+        items: writes,
+        queue: (write) => {
+          if (write.titleShape)
+            write.titleShape.textFrame.textRange.text = write.entry.planned.title;
+          if (write.bodyShape && write.body.text.length > 0) {
+            write.bodyShape.textFrame.textRange.text = write.body.text;
+          }
+        },
+        sync: () => context.sync(),
+      });
+      const refused = new Set(refusedWrites.map((write) => write.entry.index));
+
+      let fallbackTextBoxes = 0;
+      let blankSlidesLeft = 0;
+      const filled: NewSlide[] = [];
+
+      for (const write of writes) {
+        if (refused.has(write.entry.index)) {
+          blankSlidesLeft += 1;
+          failed.push({
+            index: write.entry.index,
+            title: write.entry.planned.title,
+            reason: "PowerPoint refused the placeholder text, so a blank slide was left",
+          });
+          continue;
+        }
+
+        const needsTitle = !write.titleShape;
+        const needsBody = !write.bodyShape && write.body.text.length > 0;
+        if (needsTitle || needsBody) {
+          // addTextBox cannot be bisected: a replay would duplicate the box. Keep it serial.
+          const rects = fallbackRects(
+            layoutShapes.get(write.entry.layoutId ?? "") ?? [],
+            slideSize
+          );
+          try {
+            if (needsTitle) {
+              const box = write.entry.slide.shapes.addTextBox(
+                write.entry.planned.title,
+                rects.title
+              );
+              const font = box.textFrame.textRange.font;
+              if (style.titleFontName) font.name = style.titleFontName;
+              if (style.titleFontSize) font.size = style.titleFontSize;
+              if (style.fontColor) font.color = style.fontColor;
+              font.bold = true;
+            }
+            if (needsBody) {
+              const box = write.entry.slide.shapes.addTextBox(write.body.text, rects.body);
+              const font = box.textFrame.textRange.font;
+              if (style.bodyFontName) font.name = style.bodyFontName;
+              if (style.bodyFontSize) font.size = style.bodyFontSize;
+              if (style.fontColor) font.color = style.fontColor;
+            }
+            // addTextBox is not idempotent: a bisect replay would duplicate the box.
+            // eslint-disable-next-line office-addins/no-context-sync-in-loop
+            await context.sync();
+            fallbackTextBoxes += 1;
+          } catch {
+            failed.push({
+              index: write.entry.index,
+              title: write.entry.planned.title,
+              reason: "PowerPoint refused a text box for this slide",
+            });
+            continue;
+          }
+        }
+        filled.push(write.entry);
+      }
+
+      // Cosmetics must never cost a slide its content, so this batch's failure is swallowed.
+      let notesSkipped = 0;
+      try {
+        writes.forEach((write) => {
+          if (write.bodyShape && write.body.useBullets && write.body.text.length > 0) {
+            write.bodyShape.textFrame.textRange.paragraphFormat.bulletFormat.visible = true;
+          }
+        });
+        if (options.stashNotesAsTags !== false) {
+          filled.forEach((entry) => {
+            if (entry.planned.notes) {
+              entry.slide.tags.add("SlidewareNotes", entry.planned.notes);
+              notesSkipped += 1;
+            }
+          });
+        } else {
+          notesSkipped = filled.filter((entry) => Boolean(entry.planned.notes)).length;
+        }
+        if (options.selectFirstNewSlide !== false && filled.length > 0) {
+          context.presentation.setSelectedSlides([filled[0].slide.id]);
+        }
+        await context.sync();
+      } catch {
+        notesSkipped = filled.filter((entry) => Boolean(entry.planned.notes)).length;
+      }
+
+      return {
+        added: filled.length,
+        failed,
+        blankSlidesLeft,
+        notesSkipped,
+        fallbackTextBoxes,
+        firstNewSlideId: filled.length > 0 ? filled[0].slide.id : undefined,
+      };
+    });
+  } catch (error) {
+    throw wrapError(error, "PowerPoint could not build the slides.");
   }
 }

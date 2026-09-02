@@ -31,3 +31,19 @@ test("ignores title-named shapes without text", () => {
   ];
   assert.equal(deriveTitle(shapes), "Real heading");
 });
+
+test("does not mistake a subtitle for the slide title", () => {
+  const shapes = [
+    { id: "a", name: "Subtitle 2", top: 300, text: "A tagline" },
+    { id: "b", name: "Title 1", top: 60, text: "Money Moxie" },
+  ];
+  assert.equal(deriveTitle(shapes), "Money Moxie");
+});
+
+test("prefers the topmost title when several shapes are named title", () => {
+  const shapes = [
+    { id: "a", name: "Title Placeholder 3", top: 400, text: "Lower" },
+    { id: "b", name: "Title 1", top: 40, text: "Upper" },
+  ];
+  assert.equal(deriveTitle(shapes), "Upper");
+});

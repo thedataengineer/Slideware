@@ -1,9 +1,7 @@
 import { DeckSnapshot } from "./snapshot";
+import { DEFAULT_SLIDE_SIZE, SlideSize } from "./slide-size";
 
-export interface SlideSize {
-  width: number;
-  height: number;
-}
+export type { SlideSize };
 
 export interface Finding {
   rule: "off-slide" | "tiny-font" | "font-sprawl" | "empty-text" | "overlong";
@@ -13,7 +11,6 @@ export interface Finding {
   shapeName?: string;
 }
 
-const DEFAULT_SLIDE_SIZE: SlideSize = { width: 960, height: 540 };
 const MIN_FONT_SIZE = 12;
 const MAX_FONT_FAMILIES = 3;
 const MAX_TEXT_LENGTH = 300;
